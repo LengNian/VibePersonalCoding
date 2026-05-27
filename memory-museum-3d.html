@@ -1056,6 +1056,21 @@
       cx+=w*gap+gap*2;
     }
 
+    // ===== 讲台 (黑板前) =====
+    const podium=new THREE.Group();
+    const podWood=new THREE.MeshStandardMaterial({color:'#8b6914',roughness:0.45});
+    const podBody=box(1.4,0.9,0.55,podWood);podBody.position.y=0.45;podium.add(podBody);
+    const podTop=box(1.5,0.05,0.65,new THREE.MeshStandardMaterial({color:'#a07830',roughness:0.35}));
+    podTop.position.set(0,0.92,0.04);podTop.rotation.x=-0.2;podium.add(podTop);
+    const podBase=box(1.5,0.06,0.65,new THREE.MeshStandardMaterial({color:'#5a3a1a',roughness:0.5}));
+    podBase.position.set(0,0.03,0);podium.add(podBase);
+    const chalkColors=['#f0ead8','#ffe8c0','#ffdde0','#d8f0e0','#e0e8ff'];
+    for(let ci=0;ci<5;ci++){
+      const chalk=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.08,8),new THREE.MeshStandardMaterial({color:chalkColors[ci],roughness:0.9}));
+      chalk.position.set(-0.35+ci*0.18,1.0,0.3);chalk.rotation.x=-0.2;chalk.rotation.z=Math.random()*0.5;podium.add(chalk);
+    }
+    podium.position.set(0,0,1.8);add(R,podium);addCollider(R,0,1.8,1.7,0.7);
+
     // ===== 小学生 x5 (面朝黑板, 聚在z=2~3.5) =====
     function createStudent(sx,sz){
       const sg=new THREE.Group();
