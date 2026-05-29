@@ -1308,6 +1308,361 @@
     wall(R, W/2, Z2, 0.3, WH2, D2, w2Mat);
     add(R, new THREE.PointLight('#f0f4ff', 16, 10, 2)).position.set(0, WH2-0.3, Z2);
 
+    // ===== 课桌区域 (左侧) =====
+    const deskMat = new THREE.MeshStandardMaterial({color:'#8b6914', roughness:0.5});
+    const deskTopMat = new THREE.MeshStandardMaterial({color:'#a08050', roughness:0.4});
+    
+    function createChair(baseMat) {
+      const chair = new THREE.Group();
+      const seat = box(0.45, 0.04, 0.35, baseMat);
+      seat.position.y = 0.35;
+      chair.add(seat);
+      const back = box(0.4, 0.3, 0.04, baseMat);
+      back.position.set(0, 0.52, -0.16);
+      chair.add(back);
+      for (let l = -1; l <= 1; l += 2) {
+        for (let w = -1; w <= 1; w += 2) {
+          const leg = box(0.04, 0.32, 0.04, baseMat);
+          leg.position.set(l * 0.18, 0.16, w * 0.14);
+          chair.add(leg);
+        }
+      }
+      return chair;
+    }
+    
+    function createStudent() {
+      const student = new THREE.Group();
+      const skinColor = '#f0dcc0';
+      
+      // 头 (与玩家角色一致)
+      const headGroup = new THREE.Group();
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 16), new THREE.MeshStandardMaterial({color:skinColor, roughness:0.5}));
+      headGroup.add(head);
+      
+      // 头发
+      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.6), new THREE.MeshStandardMaterial({color:'#3a2a1a', roughness:0.7}));
+      hair.position.y = 0.08;
+      headGroup.add(hair);
+      
+      // 低头看书姿势
+      headGroup.rotation.x = 0.6;
+      headGroup.position.y = 0.95;
+      student.add(headGroup);
+      
+      // 脖子
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.15, 8), new THREE.MeshStandardMaterial({color:skinColor, roughness:0.5}));
+      neck.position.y = 0.7;
+      student.add(neck);
+      
+      // 上半身
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.25), new THREE.MeshStandardMaterial({color:'#4a7a9a', roughness:0.5}));
+      body.position.y = 0.4;
+      body.rotation.x = 0.2;
+      student.add(body);
+      
+      // 手臂 (向前伸，双手放在桌面上捧着书)
+      const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.35, 4, 6), new THREE.MeshStandardMaterial({color:'#f0dcc0', roughness:0.6}));
+      armL.position.set(-0.25, 0.5, 0.35);
+      armL.rotation.x = 1.3;
+      armL.rotation.z = -0.4;
+      student.add(armL);
+      
+      const armR = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.35, 4, 6), new THREE.MeshStandardMaterial({color:'#f0dcc0', roughness:0.6}));
+      armR.position.set(0.25, 0.5, 0.35);
+      armR.rotation.x = 1.3;
+      armR.rotation.z = 0.4;
+      student.add(armR);
+      
+      // 手 (放在桌面上，捧着书的两侧)
+      const handL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8), new THREE.MeshStandardMaterial({color:skinColor, roughness:0.6}));
+      handL.position.set(-0.15, 0.32, 0.58);
+      student.add(handL);
+      
+      const handR = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8), new THREE.MeshStandardMaterial({color:skinColor, roughness:0.6}));
+      handR.position.set(0.15, 0.32, 0.58);
+      student.add(handR);
+      
+      // 书 (放在桌面上)
+      const book = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.03, 0.25), new THREE.MeshStandardMaterial({color:'#8b4513', roughness:0.4}));
+      book.position.set(0, 0.25, 0.55);
+      book.rotation.x = 0.2;
+      student.add(book);
+      
+      // 书页
+      const pages = new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.02, 0.23), new THREE.MeshStandardMaterial({color:'#f5f5dc', roughness:0.6}));
+      pages.position.set(0, 0.26, 0.55);
+      pages.rotation.x = 0.2;
+      student.add(pages);
+      
+      // 臀部 (坐在椅子上)
+      const hips = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.15, 0.3), new THREE.MeshStandardMaterial({color:'#4a7a9a', roughness:0.5}));
+      hips.position.y = 0.05;
+      student.add(hips);
+      
+      // 腿 (坐在椅子上，大腿水平，小腿下垂)
+      for (let l = -1; l <= 1; l += 2) {
+        // 大腿
+        const thigh = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.25, 4, 6), new THREE.MeshStandardMaterial({color:'#3a3a5a', roughness:0.6}));
+        thigh.position.set(l * 0.12, -0.05, 0.15);
+        thigh.rotation.x = -0.8;
+        student.add(thigh);
+        
+        // 小腿
+        const calf = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.3, 4, 6), new THREE.MeshStandardMaterial({color:'#3a3a5a', roughness:0.6}));
+        calf.position.set(l * 0.14, -0.15, 0.4);
+        calf.rotation.x = 0.1;
+        student.add(calf);
+      }
+      
+      return student;
+    }
+    
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const desk = new THREE.Group();
+        const dx = -3 + col * 2.5;
+        const dz = D1 + 1 + row * 3.2;
+        
+        const deskTop = box(1.2, 0.06, 0.6, deskTopMat);
+        deskTop.position.y = 0.73;
+        desk.add(deskTop);
+        
+        const deskLegs = new THREE.Group();
+        for (let l = -1; l <= 1; l += 2) {
+          for (let w = -1; w <= 1; w += 2) {
+            const leg = box(0.05, 0.7, 0.05, deskMat);
+            leg.position.set(l * 0.55, 0.35, w * 0.28);
+            deskLegs.add(leg);
+          }
+        }
+        desk.add(deskLegs);
+        
+        desk.position.set(dx, 0.02, dz);
+        add(R, desk);
+        addCollider(R, dx, dz, 1.3, 0.7);
+        
+        // 椅子 (在桌子中间)
+        const chair = createChair(new THREE.MeshStandardMaterial({color:'#6b4a2a', roughness:0.5}));
+        chair.position.set(dx, 0.02, dz + 0.4);
+        chair.rotation.y = Math.PI;
+        add(R, chair);
+        addCollider(R, dx, dz + 0.4, 0.5, 0.4);
+        
+        // 学生 (坐在椅子上，手捧着书，书在桌面上方)
+        const student = createStudent();
+        student.position.set(dx, 0.55, dz + 0.2);
+        student.rotation.y = Math.PI;
+        add(R, student);
+      }
+    }
+
+    // ===== 课桌上的书本 =====
+    function addBooks(dx, dz) {
+      const bookMat = new THREE.MeshStandardMaterial({color:'#cc4444', roughness:0.5});
+      for (let b = 0; b < 3; b++) {
+        const book = box(0.15, 0.22, 0.28, bookMat);
+        book.position.set(dx - 0.3 + b * 0.18, 0.82, dz);
+        book.rotation.y = (Math.random() - 0.5) * 0.1;
+        add(R, book);
+      }
+    }
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        addBooks(-3 + c * 2.5, D1 + 1 + r * 3.2);
+      }
+    }
+
+    // ===== 倒计时牌 (右侧墙上) =====
+    const countdownCanvas = document.createElement('canvas');
+    countdownCanvas.width = 300;
+    countdownCanvas.height = 150;
+    const cdctx = countdownCanvas.getContext('2d');
+    cdctx.fillStyle = '#ff3333';
+    cdctx.fillRect(0, 0, 300, 150);
+    cdctx.fillStyle = '#ffffff';
+    cdctx.font = 'bold 24px serif';
+    cdctx.textAlign = 'center';
+    cdctx.fillText('距离高考', 150, 50);
+    cdctx.font = 'bold 48px serif';
+    cdctx.fillText('286', 150, 110);
+    cdctx.font = '16px serif';
+    cdctx.fillText('天', 220, 115);
+    const cdTex = new THREE.CanvasTexture(countdownCanvas);
+    cdTex.colorSpace = THREE.SRGBColorSpace;
+    const countdown = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.9), new THREE.MeshBasicMaterial({map:cdTex}));
+    countdown.position.set(W/2 - 0.16, 2.2, D1 + 3);
+    countdown.rotation.y = -Math.PI/2;
+    add(R, countdown);
+
+    // ===== 正面墙励志横幅 =====
+    const bannerY = 2.8;
+    const banners = [
+      { text: '拼搏三年 成就一生', color: '#ff6b6b' },
+      { text: '今日埋头苦学 明朝独占鳌头', color: '#4ecdc4' },
+    ];
+    
+    banners.forEach((banner, idx) => {
+      const bannerCanvas = document.createElement('canvas');
+      bannerCanvas.width = 400;
+      bannerCanvas.height = 60;
+      const bctx = bannerCanvas.getContext('2d');
+      bctx.fillStyle = banner.color;
+      bctx.fillRect(0, 0, 400, 60);
+      bctx.fillStyle = '#ffffff';
+      bctx.font = 'bold 18px serif';
+      bctx.textAlign = 'center';
+      bctx.fillText(banner.text, 200, 40);
+      const bannerTex = new THREE.CanvasTexture(bannerCanvas);
+      bannerTex.colorSpace = THREE.SRGBColorSpace;
+      const bannerMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 0.4), new THREE.MeshBasicMaterial({map:bannerTex}));
+      bannerMesh.position.set(-3 + idx * 6, bannerY, D1 + 0.22);
+      add(R, bannerMesh);
+    });
+
+    // ===== 卫生角 (左后角，房间2最后面) =====
+    const cornerX = -W/2 + 0.8;
+    const backZ = D1 + D2 - 1;
+    
+    // 扫帚
+    const broom = new THREE.Group();
+    const broomStick = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 1.2, 8), new THREE.MeshStandardMaterial({color:'#8b4513', roughness:0.6}));
+    broomStick.position.set(0, 0.6, 0);
+    broomStick.rotation.z = 0.3;
+    broom.add(broomStick);
+    const broomHead = box(0.04, 0.4, 0.3, new THREE.MeshStandardMaterial({color:'#6b4423', roughness:0.7}));
+    broomHead.position.set(0.18, 0.22, 0);
+    broom.add(broomHead);
+    broom.position.set(cornerX, 0, backZ);
+    add(R, broom);
+    
+    // 拖把
+    const mop = new THREE.Group();
+    const mopStick = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 1.3, 8), new THREE.MeshStandardMaterial({color:'#a0a0a0', roughness:0.5, metalness:0.3}));
+    mopStick.position.set(0, 0.65, 0);
+    mopStick.rotation.z = -0.2;
+    mop.add(mopStick);
+    const mopHead = box(0.03, 0.15, 0.35, new THREE.MeshStandardMaterial({color:'#2a4a6a', roughness:0.6}));
+    mopHead.position.set(-0.15, 0.08, 0);
+    mop.add(mopHead);
+    mop.position.set(cornerX + 0.4, 0, backZ);
+    add(R, mop);
+    
+    // 垃圾桶
+    const trashCan = new THREE.Group();
+    const canBody = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.28, 0.4, 16), new THREE.MeshStandardMaterial({color:'#3a3a3a', roughness:0.4}));
+    canBody.position.y = 0.2;
+    trashCan.add(canBody);
+    const canLid = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.05, 16), new THREE.MeshStandardMaterial({color:'#4a4a4a', roughness:0.4}));
+    canLid.position.y = 0.42;
+    trashCan.add(canLid);
+    trashCan.position.set(cornerX + 0.9, 0.02, backZ);
+    add(R, trashCan);
+    addCollider(R, cornerX + 0.9, backZ, 0.6, 0.6);
+
+    // ===== 体育道具区 (右后角，房间2最后面) =====
+    const sportX = W/2 - 1.5;
+    const sportZ = D1 + D2 - 0.8;
+    
+    // 篮球
+    const basketball = new THREE.Mesh(new THREE.SphereGeometry(0.28, 32, 32), new THREE.MeshStandardMaterial({color:'#ff6b35', roughness:0.4}));
+    basketball.position.set(sportX, 0.28, sportZ);
+    add(R, basketball);
+    // 篮球纹路
+    const bbLine1 = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.008, 8, 24), new THREE.MeshStandardMaterial({color:'#333', roughness:0.8}));
+    bbLine1.position.copy(basketball.position);
+    bbLine1.rotation.x = Math.PI/2;
+    add(R, bbLine1);
+    const bbLine2 = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.008, 8, 24), new THREE.MeshStandardMaterial({color:'#333', roughness:0.8}));
+    bbLine2.position.copy(basketball.position);
+    bbLine2.rotation.z = Math.PI/6;
+    add(R, bbLine2);
+    
+    // 足球
+    const soccerBall = new THREE.Mesh(new THREE.SphereGeometry(0.26, 32, 32), new THREE.MeshStandardMaterial({color:'#ffffff', roughness:0.4}));
+    soccerBall.position.set(sportX - 0.7, 0.26, sportZ);
+    add(R, soccerBall);
+    
+    // 跳绳
+    const jumpRope = new THREE.Group();
+    const ropeLength = 2.5;
+    for (let i = 0; i < 20; i++) {
+      const segment = box(0.13, 0.015, 0.015, new THREE.MeshStandardMaterial({color:'#ffcc00', roughness:0.5}));
+      segment.position.set(0, -i * 0.13, 0);
+      if (i > 0) segment.rotation.z = (Math.random() - 0.5) * 0.3;
+      jumpRope.add(segment);
+    }
+    jumpRope.position.set(sportX, 1.5, sportZ);
+    jumpRope.rotation.x = Math.PI/2;
+    add(R, jumpRope);
+    
+    // 羽毛球拍
+    const racket = new THREE.Group();
+    const racketFrame = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.02, 8, 24), new THREE.MeshStandardMaterial({color:'#e8e8e8', roughness:0.4, metalness:0.2}));
+    racketFrame.position.set(0, 0, 0);
+    racket.add(racketFrame);
+    const racketHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.018, 0.6, 8), new THREE.MeshStandardMaterial({color:'#8b4513', roughness:0.5}));
+    racketHandle.position.set(0, 0, -0.3);
+    racket.add(racketHandle);
+    racket.position.set(sportX - 0.6, 0.6, sportZ);
+    racket.rotation.z = Math.PI/4;
+    add(R, racket);
+    
+    // 暗恋的纸条 (贴在右侧墙上)
+    const noteCanvas = document.createElement('canvas');
+    noteCanvas.width = 100;
+    noteCanvas.height = 80;
+    const nctx = noteCanvas.getContext('2d');
+    nctx.fillStyle = '#fff8dc';
+    nctx.fillRect(0, 0, 100, 80);
+    nctx.strokeStyle = '#d4c4a8';
+    nctx.lineWidth = 2;
+    nctx.strokeRect(2, 2, 96, 76);
+    nctx.fillStyle = '#333';
+    nctx.font = '10px serif';
+    nctx.fillText('我喜欢你', 50, 35);
+    nctx.fillText('但不敢说', 50, 55);
+    nctx.textAlign = 'center';
+    const noteTex = new THREE.CanvasTexture(noteCanvas);
+    noteTex.colorSpace = THREE.SRGBColorSpace;
+    const note = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.4), new THREE.MeshBasicMaterial({map:noteTex}));
+    note.position.set(W/2 - 0.15, 1.8, D1 + 2);
+    note.rotation.y = -Math.PI/2;
+    note.rotation.z = 0.05;
+    add(R, note);
+    
+    // 更多纸条
+    const note2Canvas = document.createElement('canvas');
+    note2Canvas.width = 80;
+    note2Canvas.height = 100;
+    const n2ctx = note2Canvas.getContext('2d');
+    n2ctx.fillStyle = '#ffe4e1';
+    n2ctx.fillRect(0, 0, 80, 100);
+    n2ctx.fillStyle = '#555';
+    n2ctx.font = '8px serif';
+    n2ctx.textAlign = 'left';
+    n2ctx.fillText('XXX同学:', 5, 20);
+    n2ctx.fillText('祝你考', 5, 35);
+    n2ctx.fillText('上理想', 5, 50);
+    n2ctx.fillText('的大学!', 5, 65);
+    const note2Tex = new THREE.CanvasTexture(note2Canvas);
+    note2Tex.colorSpace = THREE.SRGBColorSpace;
+    const note2 = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.5), new THREE.MeshBasicMaterial({map:note2Tex}));
+    note2.position.set(W/2 - 0.15, 1.6, D1 + 4);
+    note2.rotation.y = -Math.PI/2;
+    note2.rotation.z = -0.08;
+    add(R, note2);
+
+    // ===== 交互展品 =====
+    // 倒计时牌
+    const cdInteract = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 0.2), new THREE.MeshBasicMaterial({visible:false}));
+    cdInteract.position.set(W/2 - 0.2, 2.2, D1 + 3);
+    addInteractable(R, cdInteract, {type:'exhibit', title:'高考倒计时', content:'<p>"距离高考 286 天"</p><p>红色的数字每天都会变化。那时候觉得286天很长，现在回想，不过是弹指一挥间。</p><p>黑板上的公式还在，课桌上的刻痕还在，只是那些并肩奋斗的人，早已散落天涯。</p>'});
+    
+    // 暗恋纸条
+    const noteInteract = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.2), new THREE.MeshBasicMaterial({visible:false}));
+    noteInteract.position.set(sportX - 0.3, 1.8, D1 + 2.1);
+    addInteractable(R, noteInteract, {type:'exhibit', title:'墙上的纸条', content:'<p>"我喜欢你，但不敢说。"</p><p>不知道是谁写的，也不知道写给谁。课间的时候，大家都会偷偷看这张纸条，然后心照不宣地笑。</p><p>青春就是这样，有些话，永远说不出口。</p>'});
+
     // ===== 房间3: 大学 — 自由探索 =====
     const WH3 = 4.0;
     const fl3 = box(W, 0.12, D3, new THREE.MeshStandardMaterial({color:'#4a3528', roughness:0.5})); fl3.position.set(0,-0.08,Z3); add(R,fl3);
