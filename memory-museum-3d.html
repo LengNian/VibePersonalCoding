@@ -1308,50 +1308,6 @@
     wall(R, W/2, Z2, 0.3, WH2, D2, w2Mat);
     add(R, new THREE.PointLight('#f0f4ff', 16, 10, 2)).position.set(0, WH2-0.3, Z2);
 
-    // ===== 天花板灯管 =====
-    function createFluorescentLight(x, z) {
-      const lightGroup = new THREE.Group();
-      // 灯管外壳
-      const tube = box(2.5, 0.08, 0.15, new THREE.MeshStandardMaterial({color:'#d0d0d0', roughness:0.3}));
-      tube.position.y = 0.04;
-      lightGroup.add(tube);
-      // 两端金属座
-      const capL = box(0.12, 0.12, 0.18, new THREE.MeshStandardMaterial({color:'#8a8a8a', roughness:0.2, metalness:0.6}));
-      capL.position.set(-1.25, 0.06, 0);
-      lightGroup.add(capL);
-      const capR = box(0.12, 0.12, 0.18, new THREE.MeshStandardMaterial({color:'#8a8a8a', roughness:0.2, metalness:0.6}));
-      capR.position.set(1.25, 0.06, 0);
-      lightGroup.add(capR);
-      // 发光层 - 增强发光效果
-      const glow = box(2.4, 0.03, 0.12, new THREE.MeshBasicMaterial({color:'#ffffff', transparent:true, opacity:0.9}));
-      glow.position.y = 0.06;
-      lightGroup.add(glow);
-      // 外发光效果
-      const outerGlow = box(2.6, 0.06, 0.15, new THREE.MeshBasicMaterial({color:'#c0e8ff', transparent:true, opacity:0.4}));
-      outerGlow.position.y = 0.06;
-      lightGroup.add(outerGlow);
-      // 多个点光源照明
-      const pointLight1 = new THREE.PointLight('#f8f8ff', 6, 8, 2);
-      pointLight1.position.set(-1, 0.05, 0);
-      lightGroup.add(pointLight1);
-      const pointLight2 = new THREE.PointLight('#f8f8ff', 6, 8, 2);
-      pointLight2.position.set(0, 0.05, 0);
-      lightGroup.add(pointLight2);
-      const pointLight3 = new THREE.PointLight('#f8f8ff', 6, 8, 2);
-      pointLight3.position.set(1, 0.05, 0);
-      lightGroup.add(pointLight3);
-      
-      lightGroup.position.set(x, WH2 - 0.05, z);
-      add(R, lightGroup);
-    }
-    
-    // 三排灯管（均匀分布在中学教室范围内）
-    for (let row = 0; row < 3; row++) {
-      const zPos = Z2 - 3 + row * 3;
-      createFluorescentLight(-2.5, zPos);
-      createFluorescentLight(2.5, zPos);
-    }
-
     // ===== 课桌区域 (左侧) =====
     const deskMat = new THREE.MeshStandardMaterial({color:'#8b6914', roughness:0.5});
     const deskTopMat = new THREE.MeshStandardMaterial({color:'#a08050', roughness:0.4});
@@ -1495,22 +1451,22 @@
 
     // ===== 倒计时牌 (右侧墙上) =====
     const countdownCanvas = document.createElement('canvas');
-    countdownCanvas.width = 600;
-    countdownCanvas.height = 300;
+    countdownCanvas.width = 300;
+    countdownCanvas.height = 150;
     const cdctx = countdownCanvas.getContext('2d');
     cdctx.fillStyle = '#ff3333';
-    cdctx.fillRect(0, 0, 600, 300);
+    cdctx.fillRect(0, 0, 300, 150);
     cdctx.fillStyle = '#ffffff';
-    cdctx.font = 'bold 48px serif';
+    cdctx.font = 'bold 24px serif';
     cdctx.textAlign = 'center';
-    cdctx.fillText('距离高考', 300, 100);
-    cdctx.font = 'bold 96px serif';
-    cdctx.fillText('286', 300, 220);
-    cdctx.font = 'bold 32px serif';
-    cdctx.fillText('天', 440, 230);
+    cdctx.fillText('距离高考', 150, 50);
+    cdctx.font = 'bold 48px serif';
+    cdctx.fillText('286', 150, 110);
+    cdctx.font = '16px serif';
+    cdctx.fillText('天', 220, 115);
     const cdTex = new THREE.CanvasTexture(countdownCanvas);
     cdTex.colorSpace = THREE.SRGBColorSpace;
-    const countdown = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.8), new THREE.MeshBasicMaterial({map:cdTex}));
+    const countdown = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.9), new THREE.MeshBasicMaterial({map:cdTex}));
     countdown.position.set(W/2 - 0.16, 2.2, D1 + 3);
     countdown.rotation.y = -Math.PI/2;
     add(R, countdown);
@@ -1542,7 +1498,7 @@
 
     // ===== 卫生角 (左后角，房间2最后面) =====
     const cornerX = -W/2 + 0.8;
-    const backZ = D1 + D2 - 0.3;
+    const backZ = D1 + D2 - 1;
     
     // 扫帚
     const broom = new THREE.Group();
@@ -1551,9 +1507,9 @@
     broomStick.rotation.z = 0.3;
     broom.add(broomStick);
     const broomHead = box(0.04, 0.4, 0.3, new THREE.MeshStandardMaterial({color:'#6b4423', roughness:0.7}));
-    broomHead.position.set(0.18, 0.35, 0);
+    broomHead.position.set(0.18, 0.22, 0);
     broom.add(broomHead);
-    broom.position.set(cornerX, 0.02, backZ);
+    broom.position.set(cornerX, 0, backZ);
     add(R, broom);
     
     // 拖把
@@ -1563,9 +1519,9 @@
     mopStick.rotation.z = -0.2;
     mop.add(mopStick);
     const mopHead = box(0.03, 0.15, 0.35, new THREE.MeshStandardMaterial({color:'#2a4a6a', roughness:0.6}));
-    mopHead.position.set(-0.15, 0.15, 0);
+    mopHead.position.set(-0.15, 0.08, 0);
     mop.add(mopHead);
-    mop.position.set(cornerX + 0.4, 0.02, backZ);
+    mop.position.set(cornerX + 0.4, 0, backZ);
     add(R, mop);
     
     // 垃圾桶
@@ -1576,9 +1532,9 @@
     const canLid = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.05, 16), new THREE.MeshStandardMaterial({color:'#4a4a4a', roughness:0.4}));
     canLid.position.y = 0.42;
     trashCan.add(canLid);
-    trashCan.position.set(cornerX + 0.9, 0.02, backZ - 0.3);
+    trashCan.position.set(cornerX + 0.9, 0.02, backZ);
     add(R, trashCan);
-    addCollider(R, cornerX + 0.9, backZ - 0.3, 0.6, 0.6);
+    addCollider(R, cornerX + 0.9, backZ, 0.6, 0.6);
 
     // ===== 体育道具区 (右后角，房间2最后面) =====
     const sportX = W/2 - 1.5;
@@ -1645,10 +1601,10 @@
     });
     const goalTex = new THREE.CanvasTexture(goalCanvas);
     goalTex.colorSpace = THREE.SRGBColorSpace;
-    const goalWall = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.8), new THREE.MeshStandardMaterial({map:goalTex, roughness:0.8, metalness:0.05}));
+    goalTex.needsUpdate = true;
+    const goalWall = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.8), new THREE.MeshStandardMaterial({map:goalTex, roughness:0.8, depthTest:true, depthWrite:true}));
     goalWall.position.set(-W/2 + 0.16, 2.8, D1 + 5);
     goalWall.rotation.y = Math.PI/2;
-    goalWall.receiveShadow = true;
     add(R, goalWall);
     
     const goalInteract = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.8, 8), new THREE.MeshBasicMaterial({visible:false}));
@@ -1680,14 +1636,14 @@
     });
     const honorTex1 = new THREE.CanvasTexture(honorCanvas1);
     honorTex1.colorSpace = THREE.SRGBColorSpace;
-    const honorWall1 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), new THREE.MeshStandardMaterial({map:honorTex1, roughness:0.8, metalness:0.05}));
-    honorWall1.position.set(W/2 - 0.16, 1.6, Z2 + 2);
+    honorTex1.needsUpdate = true;
+    const honorWall1 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), new THREE.MeshStandardMaterial({map:honorTex1, roughness:0.8, depthTest:true, depthWrite:true}));
+    honorWall1.position.set(W/2 - 0.16, 1.6, Z2);
     honorWall1.rotation.y = -Math.PI/2;
-    honorWall1.receiveShadow = true;
     add(R, honorWall1);
     
     const honorInteract1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2, 1), new THREE.MeshBasicMaterial({visible:false}));
-    honorInteract1.position.set(W/2 - 0.2, 1.6, Z2 + 2);
+    honorInteract1.position.set(W/2 - 0.2, 1.6, Z2);
     addInteractable(R, honorInteract1, {type:'exhibit', title:'光荣榜', content:'<p>每次大考后，榜单就会更新。</p><p>有人稳居前列，有人奋力追赶。</p><p>那时候，分数似乎是衡量一切的标尺。</p>'});
     
     // ===== 光荣榜2 (右侧墙右边) =====
@@ -1715,14 +1671,14 @@
     });
     const honorTex2 = new THREE.CanvasTexture(honorCanvas2);
     honorTex2.colorSpace = THREE.SRGBColorSpace;
-    const honorWall2 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), new THREE.MeshStandardMaterial({map:honorTex2, roughness:0.8, metalness:0.05}));
-    honorWall2.position.set(W/2 - 0.16, 1.6, Z2 + 4);
+    honorTex2.needsUpdate = true;
+    const honorWall2 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), new THREE.MeshStandardMaterial({map:honorTex2, roughness:0.8, depthTest:true, depthWrite:true}));
+    honorWall2.position.set(W/2 - 0.16, 1.6, Z2 + 3);
     honorWall2.rotation.y = -Math.PI/2;
-    honorWall2.receiveShadow = true;
     add(R, honorWall2);
     
     const honorInteract2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2, 1), new THREE.MeshBasicMaterial({visible:false}));
-    honorInteract2.position.set(W/2 - 0.2, 1.6, Z2 + 4);
+    honorInteract2.position.set(W/2 - 0.2, 1.6, Z2 + 3);
     addInteractable(R, honorInteract2, {type:'exhibit', title:'月考光荣榜', content:'<p>每月一次的月考，是检验学习成果的标尺。</p><p>有人进步，有人退步。</p><p>那些名字背后，是无数个挑灯夜读的夜晚。</p>'});
     
     // ===== 错题墙 (左侧墙下半部分) =====
@@ -1762,10 +1718,10 @@
     });
     const wrongTex = new THREE.CanvasTexture(wrongCanvas);
     wrongTex.colorSpace = THREE.SRGBColorSpace;
-    const wrongWall = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.8), new THREE.MeshStandardMaterial({map:wrongTex, roughness:0.8, metalness:0.05}));
+    wrongTex.needsUpdate = true;
+    const wrongWall = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.8), new THREE.MeshStandardMaterial({map:wrongTex, roughness:0.8, depthTest:true, depthWrite:true}));
     wrongWall.position.set(-W/2 + 0.16, 0.8, D1 + 5);
     wrongWall.rotation.y = Math.PI/2;
-    wrongWall.receiveShadow = true;
     add(R, wrongWall);
     
     const wrongInteract = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.8, 8), new THREE.MeshBasicMaterial({visible:false}));
@@ -1773,8 +1729,8 @@
     addInteractable(R, wrongInteract, {type:'exhibit', title:'错题墙', content:'<p>每次考试后的错题整理，是进步的阶梯。</p><p>红色的叉号，绿色的解析。</p><p>那些曾经做错的题，后来都成了最深刻的记忆。</p>'});
 
     // ===== 房间3: 大学 — 自由探索 =====
-    const WH3 = 4.0;
-    const fl3 = box(W, 0.12, D3, new THREE.MeshStandardMaterial({color:'#4a3528', roughness:0.5})); fl3.position.set(0,-0.08,Z3); add(R,fl3);
+    const WH3 = 3.5;
+    const fl3 = box(W, 0.12, D3, new THREE.MeshStandardMaterial({color:'#d8c8b0', roughness:0.5})); fl3.position.set(0,-0.08,Z3); add(R,fl3);
     const cl3 = box(W, 0.1, D3, new THREE.MeshStandardMaterial({color:'#2a2520', roughness:0.85})); cl3.position.set(0,WH3,Z3); add(R,cl3);
     const w3Mat = new THREE.MeshStandardMaterial({color:'#3a3a3a', roughness:0.7});
     wall(R, -W/2, Z3, 0.3, WH3, D3, w3Mat);
@@ -1783,12 +1739,151 @@
     wall(R, 0, totalZ, W+0.6, WH3, 0.3, new THREE.MeshStandardMaterial({color:'#4a3a2a', roughness:0.65}));
     // 窗户
     const win3 = new THREE.Mesh(new THREE.PlaneGeometry(3, 2), new THREE.MeshBasicMaterial({color:'#2a3a4a'})); win3.position.set(0, 2.2, totalZ-0.16); add(R,win3);
+    // 研究白板 (后墙左侧)
+    const wbCanvas = document.createElement('canvas');
+    wbCanvas.width = 400; wbCanvas.height = 240;
+    const wbctx = wbCanvas.getContext('2d');
+    wbctx.fillStyle = '#f8f8f8'; wbctx.fillRect(0,0,400,240);
+    wbctx.strokeStyle = '#4472c4'; wbctx.lineWidth = 1;
+    wbctx.strokeRect(20,20,360,200);
+    wbctx.fillStyle = '#333'; wbctx.font = 'bold 20px serif';
+    wbctx.fillText('研究思路', 150, 55);
+    wbctx.fillStyle = '#555'; wbctx.font = '13px serif';
+    wbctx.fillText('1. 文献综述 - 找到研究空白', 40, 85);
+    wbctx.fillText('2. 实验设计 - 假设与验证', 40, 110);
+    wbctx.fillText('3. 数据分析 - 结论与展望', 40, 135);
+    wbctx.fillText('4. 论文写作 - 润色与投稿', 40, 160);
+    const wbTex = new THREE.CanvasTexture(wbCanvas);
+    wbTex.colorSpace = THREE.SRGBColorSpace;
+    const whiteboard = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.5), new THREE.MeshBasicMaterial({map:wbTex}));
+    whiteboard.position.set(-1.5, 1.8, totalZ-0.2); whiteboard.rotation.y = Math.PI; add(R, whiteboard);
     // 暖光
-    add(R, new THREE.PointLight('#ffcc88', 10, 8, 2)).position.set(0, WH3-0.5, Z3+2);
-    add(R, new THREE.PointLight('#e8e0ff', 8, 6, 2)).position.set(-3, WH3-0.5, Z3-2);
+    add(R, new THREE.PointLight('#ffe4c4', 10, 8, 2)).position.set(0, WH3-0.5, Z3+2);
+    add(R, new THREE.PointLight('#ffe4c4', 8, 6, 2)).position.set(-3, WH3-0.5, Z3-2);
 
     // 环境光
     add(R, new THREE.AmbientLight('#c8c0b0', 0.9));
+
+    // ===== 实验长桌 =====
+    const labTable = new THREE.Group();
+    const labTop = box(3, 0.06, 0.8, new THREE.MeshStandardMaterial({color:'#d0d0d0', roughness:0.3, metalness:0.6}));
+    labTop.position.y = 0.8; labTable.add(labTop);
+    for (let lx = -1; lx <= 1; lx+=2) {
+      for (let lz = -1; lz <= 1; lz+=2) {
+        const labLeg = box(0.05, 0.75, 0.05, new THREE.MeshStandardMaterial({color:'#666', roughness:0.4, metalness:0.5}));
+        labLeg.position.set(lx*1.3, 0.37, lz*0.32); labTable.add(labLeg);
+      }
+    }
+    // 论文堆
+    const papers = new THREE.Group();
+    for (let p = 0; p < 4; p++) {
+      const paper = box(0.2, 0.008, 0.28, new THREE.MeshStandardMaterial({color:'#fafafa', roughness:0.8}));
+      paper.position.set(p*0.03, 0.84 + p*0.01, 0.15); paper.rotation.set(0, p*0.15, 0); papers.add(paper);
+    }
+    papers.position.set(-0.9, 0, 0); labTable.add(papers);
+    // 笔记本
+    const labLt = new THREE.Group();
+    const ltBase = box(0.35, 0.02, 0.25, new THREE.MeshStandardMaterial({color:'#c0c0c0', roughness:0.2, metalness:0.8}));
+    ltBase.position.y = 0.84; labLt.add(ltBase);
+    const ltScr = box(0.35, 0.22, 0.02, new THREE.MeshStandardMaterial({color:'#a0a0a0', roughness:0.2, metalness:0.6}));
+    ltScr.position.set(0, 0.96, -0.1); ltScr.rotation.x = -0.3; labLt.add(ltScr);
+    const ltScrTex = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.18), new THREE.MeshBasicMaterial({color:'#1a1a3a'}));
+    ltScrTex.position.set(0, 0.96, -0.11); ltScrTex.rotation.x = -0.3; labLt.add(ltScrTex);
+    labLt.position.set(0.7, 0, 0); labTable.add(labLt);
+    // 台式显示器 (左侧)
+    const monitorGrp = new THREE.Group();
+    const monBase = box(0.2, 0.03, 0.18, new THREE.MeshStandardMaterial({color:'#222', roughness:0.3}));
+    monBase.position.y = 0.84; monitorGrp.add(monBase);
+    const monStand = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.15, 8), new THREE.MeshStandardMaterial({color:'#555', roughness:0.2, metalness:0.7}));
+    monStand.position.y = 0.93; monitorGrp.add(monStand);
+    const monBody = box(0.5, 0.35, 0.03, new THREE.MeshStandardMaterial({color:'#1a1a1a', roughness:0.3}));
+    monBody.position.set(0, 1.15, -0.02); monitorGrp.add(monBody);
+    const monScreenTex = new THREE.Mesh(new THREE.PlaneGeometry(0.44, 0.29), new THREE.MeshBasicMaterial({color:'#0d1b2a'}));
+    monScreenTex.position.set(0, 1.15, -0.04); monitorGrp.add(monScreenTex);
+    // 屏幕上的代码线条
+    const codeColors = ['#1a5276', '#1a6e8e', '#1b7a9e', '#1d8aae', '#1f9abe'];
+    for (let ci = 0; ci < 5; ci++) {
+      const codeLn = box(0.35 - ci*0.04, 0.015, 0.01, new THREE.MeshBasicMaterial({color:codeColors[ci]}));
+      codeLn.position.set(-0.05, 1.04 + ci*0.05, -0.04); monitorGrp.add(codeLn);
+    }
+    monitorGrp.position.set(0, 0, 0); monitorGrp.rotation.y = Math.PI; labTable.add(monitorGrp);
+    // 咖啡杯
+    const tCup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.09, 8), new THREE.MeshStandardMaterial({color:'#333', roughness:0.3}));
+    tCup.position.set(-0.5, 0.88, -0.2); labTable.add(tCup);
+    labTable.position.set(0, 0.02, Z3 + 3); add(R, labTable);
+
+    // ===== 椅子 + 研究生 =====
+    const gChair = new THREE.Group();
+    const gcSeat = box(0.45, 0.04, 0.35, new THREE.MeshStandardMaterial({color:'#5a3a2a', roughness:0.5}));
+    gcSeat.position.y = 0.35; gChair.add(gcSeat);
+    const gcBack = box(0.4, 0.3, 0.04, new THREE.MeshStandardMaterial({color:'#5a3a2a', roughness:0.5}));
+    gcBack.position.set(0, 0.52, -0.16); gChair.add(gcBack);
+    for (let gci = -1; gci <= 1; gci+=2) {
+      for (let gcj = -1; gcj <= 1; gcj+=2) {
+        const gcLeg = box(0.04, 0.32, 0.04, new THREE.MeshStandardMaterial({color:'#4a2a1a', roughness:0.5}));
+        gcLeg.position.set(gci*0.18, 0.16, gcj*0.14); gChair.add(gcLeg);
+      }
+    }
+    gChair.position.set(0, 0.02, Z3 + 4); gChair.rotation.y = Math.PI; add(R, gChair);
+
+    // 研究生 (坐姿自然，大腿向下少向前)
+    const gradStu = new THREE.Group();
+    const gsSkin = '#f0dcc0';
+    const gsHeadGrp = new THREE.Group();
+    const gsHead = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16), new THREE.MeshStandardMaterial({color:gsSkin, roughness:0.5}));
+    gsHeadGrp.add(gsHead);
+    const gsHair = new THREE.Mesh(new THREE.SphereGeometry(0.23, 16, 16, 0, Math.PI*2, 0, Math.PI*0.6), new THREE.MeshStandardMaterial({color:'#1a1a1a', roughness:0.7}));
+    gsHair.position.y = 0.06; gsHeadGrp.add(gsHair);
+    for (let gsg = -1; gsg <= 1; gsg+=2) {
+      const gsGlass = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.01, 6, 12), new THREE.MeshStandardMaterial({color:'#444', roughness:0.2, metalness:0.8}));
+      gsGlass.position.set(gsg*0.06, -0.02, 0.2); gsHeadGrp.add(gsGlass);
+    }
+    const gsBridge = box(0.06, 0.01, 0.01, new THREE.MeshStandardMaterial({color:'#444', roughness:0.2, metalness:0.8}));
+    gsBridge.position.set(0, -0.02, 0.2); gsHeadGrp.add(gsBridge);
+    gsHeadGrp.rotation.x = 0.5; gsHeadGrp.position.y = 0.78;
+    gradStu.add(gsHeadGrp);
+    const gsNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.14, 8), new THREE.MeshStandardMaterial({color:gsSkin, roughness:0.5}));
+    gsNeck.position.y = 0.6; gradStu.add(gsNeck);
+    const gsBody = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.44, 0.22), new THREE.MeshStandardMaterial({color:'#2c3e50', roughness:0.5}));
+    gsBody.position.y = 0.35; gsBody.rotation.x = 0.15; gradStu.add(gsBody);
+    for (let gsa = -1; gsa <= 1; gsa+=2) {
+      const gsArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.055, 0.28, 4, 6), new THREE.MeshStandardMaterial({color:gsSkin, roughness:0.6}));
+      gsArm.position.set(gsa*0.22, 0.4, 0.18); gsArm.rotation.x = 1.5; gsArm.rotation.z = gsa*0.2; gradStu.add(gsArm);
+    }
+    const gsHips = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.12, 0.28), new THREE.MeshStandardMaterial({color:'#2c3e50', roughness:0.5}));
+    gsHips.position.y = 0.02; gradStu.add(gsHips);
+    for (let gsi = -1; gsi <= 1; gsi+=2) {
+      const gsThigh = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.22, 4, 6), new THREE.MeshStandardMaterial({color:'#3a3a5a', roughness:0.6}));
+      gsThigh.position.set(gsi*0.11, 0.03, 0.06); gsThigh.rotation.x = -0.35; gradStu.add(gsThigh);
+      const gsCalf = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.28, 4, 6), new THREE.MeshStandardMaterial({color:'#3a3a5a', roughness:0.6}));
+      gsCalf.position.set(gsi*0.13, -0.22, 0.22); gsCalf.rotation.x = 0.15; gradStu.add(gsCalf);
+    }
+    gradStu.position.set(0, 0.45, Z3 + 3.8); gradStu.rotation.y = Math.PI; add(R, gradStu);
+
+    // ===== 咖啡机 (饮水机大小，右后角) =====
+    const coffeeMachine = new THREE.Group();
+    const cmBody = box(0.5, 1.0, 0.35, new THREE.MeshStandardMaterial({color:'#222', roughness:0.3, metalness:0.5}));
+    cmBody.position.y = 0.5; coffeeMachine.add(cmBody);
+    const cmTop = box(0.55, 0.05, 0.4, new THREE.MeshStandardMaterial({color:'#333', roughness:0.2, metalness:0.7}));
+    cmTop.position.y = 1.03; coffeeMachine.add(cmTop);
+    const cmTank = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.55, 12), new THREE.MeshStandardMaterial({color:'#aaddff', roughness:0.1, transparent:true, opacity:0.5}));
+    cmTank.position.y = 0.65; coffeeMachine.add(cmTank);
+    const cmSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.1, 8), new THREE.MeshStandardMaterial({color:'#555', roughness:0.3, metalness:0.8}));
+    cmSpout.position.set(0, 0.30, 0.2); cmSpout.rotation.x = Math.PI/2; coffeeMachine.add(cmSpout);
+    const cmNozzle = box(0.08, 0.03, 0.12, new THREE.MeshStandardMaterial({color:'#444', roughness:0.3, metalness:0.8}));
+    cmNozzle.position.set(0, 0.22, 0.26); coffeeMachine.add(cmNozzle);
+    // 接水托盘
+    const cmTray = box(0.45, 0.02, 0.3, new THREE.MeshStandardMaterial({color:'#555', roughness:0.3, metalness:0.6}));
+    cmTray.position.set(0, 0.18, 0.3); coffeeMachine.add(cmTray);
+    // 咖啡壶
+    const cmPot = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.11, 0.3, 12), new THREE.MeshStandardMaterial({color:'#e8e0d0', roughness:0.3}));
+    cmPot.position.set(0.25, 1.1, 0.1); coffeeMachine.add(cmPot);
+    // 杯子 ×3
+    for (let cc = -1; cc <= 1; cc++) {
+      const ccCup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.1, 8), new THREE.MeshStandardMaterial({color:'#f5f0e8', roughness:0.3}));
+      ccCup.position.set(cc*0.14, 1.08, 0.28); coffeeMachine.add(ccCup);
+    }
+    coffeeMachine.position.set(W/2 - 1.2, 0.02, Z3 + 3.5); coffeeMachine.rotation.y = -Math.PI/2; add(R, coffeeMachine);
 
     // ===== 隔墙 =====
     function dividerWall(dz, mat, wh) {
