@@ -337,53 +337,6 @@
     </div>
   </div>
 
-  <!-- 点击开始提示（启用音频） -->
-  <div class="start-overlay" id="startOverlay">
-    <div class="start-content">
-      <h1>记忆博物馆 · Memory Museum 3D</h1>
-      <p>点击任意处开始</p>
-      <p class="hint">Click anywhere to start</p>
-    </div>
-  </div>
-
-  <style>
-    .start-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 999;
-      background: rgba(10, 8, 6, 0.95);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: opacity 0.8s ease;
-    }
-    .start-overlay.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .start-content {
-      text-align: center;
-      color: var(--gold-light);
-    }
-    .start-content h1 {
-      font-size: 32px;
-      letter-spacing: 6px;
-      margin-bottom: 30px;
-      font-weight: 400;
-    }
-    .start-content p {
-      font-size: 16px;
-      letter-spacing: 4px;
-      opacity: 0.8;
-    }
-    .start-content .hint {
-      font-size: 12px;
-      opacity: 0.5;
-      margin-top: 10px;
-    }
-  </style>
-
   <script type="importmap">
   {
     "imports": {
@@ -2237,10 +2190,6 @@
   // ============================================
   const audioStar = new Audio('audio/tongnian.mp3'); audioStar.loop = true; audioStar.volume = 0.4;
   const audioDream = new Audio('audio/zhuimeng.mp3'); audioDream.loop = true; audioDream.volume = 0.4;
-  const audioMilk = new Audio('audio/milk.mp3'); audioMilk.loop = true; audioMilk.volume = 0.4;
-  const audioKanong = new Audio('audio/kanong.mp3'); audioKanong.loop = true; audioKanong.volume = 0.4;
-  const audioPast = new Audio('audio/star.mp3'); audioPast.loop = true; audioPast.volume = 0.4;
-  const audioFuture = new Audio('audio/weareworld.mp3'); audioFuture.loop = true; audioFuture.volume = 0.4;
   let roomMusicOn = false;
   let currentSong = null;
 
@@ -2248,10 +2197,6 @@
     roomMusicOn = false; currentSong = null;
     audioStar.pause(); audioStar.currentTime = 0;
     audioDream.pause(); audioDream.currentTime = 0;
-    audioMilk.pause(); audioMilk.currentTime = 0;
-    audioKanong.pause(); audioKanong.currentTime = 0;
-    audioPast.pause(); audioPast.currentTime = 0;
-    audioFuture.pause(); audioFuture.currentTime = 0;
   }
 
   function startStarSong() {
@@ -2264,30 +2209,6 @@
     if (roomMusicOn) stopRoomMusic();
     currentSong = 'dream'; roomMusicOn = true;
     audioDream.play().catch(() => {});
-  }
-
-  function startMilkSong() {
-    if (roomMusicOn) stopRoomMusic();
-    currentSong = 'milk'; roomMusicOn = true;
-    audioMilk.play().catch(() => {});
-  }
-
-  function startKanongSong() {
-    if (roomMusicOn) stopRoomMusic();
-    currentSong = 'kanong'; roomMusicOn = true;
-    audioKanong.play().catch(() => {});
-  }
-
-  function startPastSong() {
-    if (roomMusicOn) stopRoomMusic();
-    currentSong = 'past'; roomMusicOn = true;
-    audioPast.play().catch(() => {});
-  }
-
-  function startFutureSong() {
-    if (roomMusicOn) stopRoomMusic();
-    currentSong = 'future'; roomMusicOn = true;
-    audioFuture.play().catch(() => {});
   }
 
   
@@ -2620,14 +2541,6 @@
       if (currentSong !== 'star') startStarSong();
     } else if (currentScene === 'present' && player.position.z >= 7 && player.position.z < 17) {
       if (currentSong !== 'dream') startDreamSong();
-    } else if (currentScene === 'present' && player.position.z >= 17) {
-      if (currentSong !== 'milk') startMilkSong();
-    } else if (currentScene === 'corridor' || currentScene === 'curator') {
-      if (currentSong !== 'kanong') startKanongSong();
-    } else if (currentScene === 'past') {
-      if (currentSong !== 'past') startPastSong();
-    } else if (currentScene === 'future') {
-      if (currentSong !== 'future') startFutureSong();
     } else {
       if (roomMusicOn) stopRoomMusic();
     }
@@ -2710,20 +2623,6 @@
   // ============================================
   //  启动
   // ============================================
-  let audioStarted = false;
-  const startOverlay = document.getElementById('startOverlay');
-
-  function startAudio() {
-    if (audioStarted) return;
-    audioStarted = true;
-    startKanongSong();
-    startOverlay.classList.add('hidden');
-    setTimeout(() => { startOverlay.style.display = 'none'; }, 800);
-  }
-
-  startOverlay.addEventListener('click', startAudio);
-  startOverlay.addEventListener('touchstart', startAudio);
-
   document.getElementById('sceneLabel').textContent = scenes.corridor.name;
 
   animate();
