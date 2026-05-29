@@ -316,7 +316,6 @@
     <div class="controls-help">WASD 移动 | 空格跳跃 | 鼠标360°视角 | E 进门 | F 查看展品 | 1晴 2雨 3雪 4夜</div>
     <div class="weather-indicator" id="weatherIndicator">☀️</div>
   </div>
-  </div>
 
   <div class="transition-overlay" id="transitionOverlay"></div>
 
@@ -1003,20 +1002,20 @@
   // ============================================
   (function() {
     const R = 'present';
-    const W = 10, ROOM_D = 10;
-    const Z1 = 5, Z2 = 15, Z3 = 25, totalZ = 30;
+    const W = 10, D1 = 7, D2 = 10, D3 = 10;
+    const Z1 = D1/2, Z2 = D1 + D2/2, Z3 = D1 + D2 + D3/2, totalZ = D1 + D2 + D3;
     const DOOR_W = 2, DOOR_H = 3;
 
     // ===== 房间1: 小学 — 青春洋溢 =====
     const WH1 = 3.2;
     // 彩色格子地板
-    const fl1 = box(W, 0.12, ROOM_D, new THREE.MeshStandardMaterial({color:'#e8dcc8', roughness:0.5})); fl1.position.set(0,-0.08,Z1); add(R,fl1);
+    const fl1 = box(W, 0.12, D1, new THREE.MeshStandardMaterial({color:'#e8dcc8', roughness:0.5})); fl1.position.set(0,-0.08,Z1); add(R,fl1);
     // 浅蓝天花
-    const cl1 = box(W, 0.1, ROOM_D, new THREE.MeshStandardMaterial({color:'#c8e0f0', roughness:0.8})); cl1.position.set(0,WH1,Z1); add(R,cl1);
+    const cl1 = box(W, 0.1, D1, new THREE.MeshStandardMaterial({color:'#c8e0f0', roughness:0.8})); cl1.position.set(0,WH1,Z1); add(R,cl1);
     // 左右墙(分段不同色)
     const w1Mat = new THREE.MeshStandardMaterial({color:'#faf5e8', roughness:0.7});
-    wall(R, -W/2, Z1, 0.3, WH1, ROOM_D, w1Mat);
-    wall(R, W/2, Z1, 0.3, WH1, ROOM_D, w1Mat);
+    wall(R, -W/2, Z1, 0.3, WH1, D1, w1Mat);
+    wall(R, W/2, Z1, 0.3, WH1, D1, w1Mat);
     // 入口墙
     wall(R, 0, 0, W+0.6, WH1, 0.3, w1Mat);
     // ===== 黑板 (入口墙上方) =====
@@ -1071,6 +1070,44 @@
     }
     podium.position.set(0,0,1.8);add(R,podium);addCollider(R,0,1.8,1.7,0.7);
 
+    // ===== 左右音响 (黑板墙上对称) =====
+    const spkMat=new THREE.MeshStandardMaterial({color:'#3a3a3a',roughness:0.3,metalness:0.3});
+    for(let s=-1;s<=1;s+=2){
+      const spk=new THREE.Group();
+      const spkBox=box(0.3,0.5,0.15,spkMat);spkBox.position.y=0.25;spk.add(spkBox);
+      const spkGrill=box(0.25,0.4,0.02,new THREE.MeshStandardMaterial({color:'#1a1a1a',roughness:0.2}));spkGrill.position.set(0,0.25,0.08);spk.add(spkGrill);
+      const spkBracket=box(0.1,0.1,0.2,new THREE.MeshStandardMaterial({color:'#555',roughness:0.3,metalness:0.5}));spkBracket.position.set(0,0,0.02);spk.add(spkBracket);
+      spk.position.set(s*2.8,2.0,0.25);add(R,spk);
+    }
+
+    // ===== 女教师 (讲台与黑板间靠左, 拿教棍指黑板) =====
+    const teacher=new THREE.Group();
+    // 鞋子
+    const tShoeL=box(0.14,0.07,0.2,new THREE.MeshStandardMaterial({color:'#1a1a1a',roughness:0.5}));tShoeL.position.set(-0.09,0.04,0.02);teacher.add(tShoeL);
+    const tShoeR=box(0.14,0.07,0.2,new THREE.MeshStandardMaterial({color:'#1a1a1a',roughness:0.5}));tShoeR.position.set(0.09,0.04,0.02);teacher.add(tShoeR);
+    // 连衣裙 (加大)
+    const tDress=new THREE.Mesh(new THREE.CapsuleGeometry(0.16,0.6,4,8),new THREE.MeshStandardMaterial({color:'#6b3a5a',roughness:0.5}));tDress.position.y=0.55;teacher.add(tDress);
+    // 手臂
+    const tArmL=new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.4,4,6),new THREE.MeshStandardMaterial({color:'#f0dcc0',roughness:0.6}));tArmL.position.set(-0.2,0.7,0);tArmL.rotation.z=0.15;teacher.add(tArmL);
+    const tArmR=new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.4,4,6),new THREE.MeshStandardMaterial({color:'#f0dcc0',roughness:0.6}));tArmR.position.set(0.2,0.7,0.15);tArmR.rotation.z=-0.8;tArmR.rotation.x=-0.5;teacher.add(tArmR);
+    // 教棍
+    const pointer=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,1.1,8),new THREE.MeshStandardMaterial({color:'#8b6914',roughness:0.4}));
+    pointer.position.set(0.4,1.0,0.5);pointer.rotation.z=-0.6;teacher.add(pointer);
+    // 手
+    const tHandL=new THREE.Mesh(new THREE.SphereGeometry(0.05,8),new THREE.MeshStandardMaterial({color:'#f0dcc0',roughness:0.6}));tHandL.position.set(-0.24,0.48,0);teacher.add(tHandL);
+    const tHandR=new THREE.Mesh(new THREE.SphereGeometry(0.05,8),new THREE.MeshStandardMaterial({color:'#f0dcc0',roughness:0.6}));tHandR.position.set(0.45,0.78,0.55);teacher.add(tHandR);
+    // 头 (加大)
+    const tHead=new THREE.Mesh(new THREE.SphereGeometry(0.24,20,20),new THREE.MeshStandardMaterial({color:'#f0dcc0',roughness:0.5}));tHead.position.y=1.15;teacher.add(tHead);
+    // 长发
+    const tHairBack=new THREE.Mesh(new THREE.SphereGeometry(0.25,20,20,0,Math.PI*2,Math.PI*0.25,Math.PI*0.45),new THREE.MeshStandardMaterial({color:'#3a2a1a',roughness:0.7}));tHairBack.position.set(0,1.15,0);teacher.add(tHairBack);
+    for(let s=-1;s<=1;s+=2){
+      const tHairSide=box(0.05,0.25,0.06,new THREE.MeshStandardMaterial({color:'#3a2a1a',roughness:0.7}));tHairSide.position.set(s*0.2,1.05,0.06);teacher.add(tHairSide);
+    }
+    // 眼镜
+    for(let s=-1;s<=1;s+=2){const gRim=new THREE.Mesh(new THREE.TorusGeometry(0.07,0.016,6,12),new THREE.MeshStandardMaterial({color:'#333',roughness:0.2,metalness:0.5}));gRim.position.set(s*0.07,1.18,0.2);teacher.add(gRim);}
+    const gBridge=box(0.05,0.025,0.025,new THREE.MeshStandardMaterial({color:'#333',roughness:0.2}));gBridge.position.set(0,1.18,0.21);teacher.add(gBridge);
+    teacher.position.set(-0.5,0.02,1.0);teacher.rotation.y=Math.PI;add(R,teacher);addCollider(R,-0.5,1.0,0.5,0.5);
+
     // ===== 小学生 x5 (面朝黑板, 聚在z=2~3.5) =====
     function createStudent(sx,sz){
       const sg=new THREE.Group();
@@ -1089,29 +1126,148 @@
     createStudent(-1.5,2.5);createStudent(0,2.8);createStudent(1.5,2.5);
     createStudent(-0.8,3.3);createStudent(0.8,3.3);
 
-    // ===== 书桌 + 蜡笔画 =====
-    const desk2=box(2,0.7,0.9,new THREE.MeshStandardMaterial({color:'#c4a060',roughness:0.5}));desk2.position.set(-3,0.35,5);add(R,desk2);addCollider(R,-3,5,2,0.9);
+    // ===== 书桌靠墙 + 蜡笔画 + 椅子 + 坐着的孩子 =====
+    // 书桌靠左墙
+    const desk2=box(2,0.7,0.9,new THREE.MeshStandardMaterial({color:'#c4a060',roughness:0.5}));desk2.position.set(-4,0.35,5);desk2.rotation.y=Math.PI/2;add(R,desk2);addCollider(R,-4,5,2.5,1.5);
+    // 蜡笔画平放桌上
+    const drawC=document.createElement('canvas');drawC.width=200;drawC.height=160;
+    const dctx=drawC.getContext('2d');dctx.fillStyle='#faf0dc';dctx.fillRect(0,0,200,160);
+    dctx.fillStyle='#ffaa00';dctx.beginPath();dctx.arc(100,50,25,0,Math.PI*2);dctx.fill();
+    for(let p=0;p<8;p++){const a=p/8*Math.PI*2;dctx.fillStyle='#ffcc00';dctx.beginPath();dctx.ellipse(100+Math.cos(a)*30,50+Math.sin(a)*30,12,8,0,0,Math.PI*2);dctx.fill();}
+    dctx.fillStyle='#3a6a2a';dctx.fillRect(95,75,10,40);
+    dctx.fillStyle='#333';dctx.font='14px serif';dctx.textAlign='center';dctx.fillText('向日葵',100,140);
+    const drawTex=new THREE.CanvasTexture(drawC);drawTex.colorSpace=THREE.SRGBColorSpace;
+    const drawPlane=new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.55),new THREE.MeshBasicMaterial({map:drawTex}));
+    drawPlane.position.set(-4,0.72,5);drawPlane.rotation.x=-Math.PI/2;drawPlane.rotation.z=Math.PI/2;add(R,drawPlane);
+    // 椅子 (面朝墙 +x)
+    const chair2=new THREE.Group();
+    const cSeat=box(0.5,0.04,0.4,new THREE.MeshStandardMaterial({color:'#6b4a2a',roughness:0.5}));cSeat.position.y=0.3;chair2.add(cSeat);
+    for(let l=-1;l<=1;l+=2){const legF=box(0.04,0.28,0.04,new THREE.MeshStandardMaterial({color:'#4a2a1a',roughness:0.5}));legF.position.set(l*0.2,0.14,0.15);chair2.add(legF);}
+    for(let l=-1;l<=1;l+=2){const legB=box(0.04,0.28,0.04,new THREE.MeshStandardMaterial({color:'#4a2a1a',roughness:0.5}));legB.position.set(l*0.2,0.14,-0.15);chair2.add(legB);}
+    const chBack=box(0.44,0.35,0.04,new THREE.MeshStandardMaterial({color:'#6b4a2a',roughness:0.5}));chBack.position.set(0,0.48,-0.18);chair2.add(chBack);
+    chair2.position.set(-3.2,0.02,5);chair2.rotation.y=-Math.PI/2;add(R,chair2);addCollider(R,-3.2,5,0.6,0.6);
+    // 坐着的孩子 (完整人形, 面朝墙 +x)
+    const sitKid=new THREE.Group();
+    // 小腿前伸
+    for(let l=-1;l<=1;l+=2){
+      const slegL=new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.2,4,6),new THREE.MeshStandardMaterial({color:'#4a4a5a',roughness:0.6}));slegL.position.set(l*0.1,0.12,0.12);slegL.rotation.x=-0.5;sitKid.add(slegL);
+    }
+    // 身体
+    const skBody2=new THREE.Mesh(new THREE.CapsuleGeometry(0.13,0.2,4,8),new THREE.MeshStandardMaterial({color:'#f0f4ff',roughness:0.5}));skBody2.position.y=0.38;sitKid.add(skBody2);
+    // 红领巾
+    const skScarfL=box(0.06,0.12,0.03,new THREE.MeshStandardMaterial({color:'#cc0000',roughness:0.3}));skScarfL.position.set(-0.1,0.5,0.1);skScarfL.rotation.z=0.4;sitKid.add(skScarfL);
+    const skScarfR=box(0.06,0.12,0.03,new THREE.MeshStandardMaterial({color:'#cc0000',roughness:0.3}));skScarfR.position.set(0.1,0.5,0.1);skScarfR.rotation.z=-0.4;sitKid.add(skScarfR);
+    // 手臂前伸画蜡笔画
+    const skArmL2=new THREE.Mesh(new THREE.CapsuleGeometry(0.04,0.18,4,6),new THREE.MeshStandardMaterial({color:'#f0f4ff',roughness:0.5}));skArmL2.position.set(-0.15,0.42,0.15);skArmL2.rotation.z=0.3;skArmL2.rotation.x=0.4;sitKid.add(skArmL2);
+    const skArmR2=new THREE.Mesh(new THREE.CapsuleGeometry(0.04,0.18,4,6),new THREE.MeshStandardMaterial({color:'#f0f4ff',roughness:0.5}));skArmR2.position.set(0.15,0.42,0.15);skArmR2.rotation.z=-0.3;skArmR2.rotation.x=0.4;sitKid.add(skArmR2);
+    // 头
+    const skHead2=new THREE.Mesh(new THREE.SphereGeometry(0.12,16),new THREE.MeshStandardMaterial({color:'#f5e0c0',roughness:0.5}));skHead2.position.y=0.68;sitKid.add(skHead2);
+    // 黄帽
+    const skHat2=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.13,0.1,12),new THREE.MeshStandardMaterial({color:'#ffcc00',roughness:0.4}));skHat2.position.y=0.76;sitKid.add(skHat2);
+    sitKid.position.set(-3.2,0.32,5);sitKid.rotation.y=-Math.PI/2;add(R,sitKid);
 
+    // === 右侧: 钢琴 + 弹琴的小朋友 ===
+    const piano=new THREE.Group();
+    const pMat=new THREE.MeshStandardMaterial({color:'#3a2a1a',roughness:0.35});
+    const pBody=box(1.4,1.1,0.6,pMat);pBody.position.y=0.55;piano.add(pBody);
+    const pKbd=box(1.2,0.08,0.3,new THREE.MeshStandardMaterial({color:'#f0ead8',roughness:0.3}));pKbd.position.set(0,0.58,0.4);piano.add(pKbd);
+    for(let ki=0;ki<7;ki++){const bk=box(0.06,0.06,0.2,new THREE.MeshStandardMaterial({color:'#1a1a1a',roughness:0.2}));bk.position.set(-0.5+ki*0.16,0.63,0.48);piano.add(bk);}
+    const pStand=box(1,0.4,0.02,new THREE.MeshStandardMaterial({color:'#5a3a2a',roughness:0.4}));pStand.position.set(0,1.0,0.25);pStand.rotation.x=0.2;piano.add(pStand);
+    const pTop=box(1.5,0.06,0.7,new THREE.MeshStandardMaterial({color:'#2a1a0a',roughness:0.3}));pTop.position.y=1.12;piano.add(pTop);
+    piano.position.set(4.5,0.02,5);piano.rotation.y=-Math.PI/2;add(R,piano);addCollider(R,4.5,5,2,1.5);
+    // 琴凳
+    const benchP=new THREE.Group();
+    const bpSeat=box(0.8,0.05,0.35,new THREE.MeshStandardMaterial({color:'#6b4a2a',roughness:0.5}));bpSeat.position.y=0.35;benchP.add(bpSeat);
+    for(let l=-1;l<=1;l+=2){const bLegF=box(0.04,0.28,0.04,new THREE.MeshStandardMaterial({color:'#4a2a1a',roughness:0.5}));bLegF.position.set(l*0.3,0.14,0.12);benchP.add(bLegF);}
+    for(let l=-1;l<=1;l+=2){const bLegB=box(0.04,0.28,0.04,new THREE.MeshStandardMaterial({color:'#4a2a1a',roughness:0.5}));bLegB.position.set(l*0.3,0.14,-0.12);benchP.add(bLegB);}
+    benchP.position.set(3.7,0.02,5);benchP.rotation.y=Math.PI/2;add(R,benchP);addCollider(R,3.7,5,0.8,0.6);
+    // 弹琴的孩子 (手与琴键同高 0.27abs, 坐凳高0.37)
+    const sitKidR=new THREE.Group();
+    for(let l=-1;l<=1;l+=2){const slegL=new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.2,4,6),new THREE.MeshStandardMaterial({color:'#4a4a5a',roughness:0.6}));slegL.position.set(l*0.1,0.12,0.08);slegL.rotation.x=-0.5;sitKidR.add(slegL);}
+    const skBodyR=new THREE.Mesh(new THREE.CapsuleGeometry(0.13,0.2,4,8),new THREE.MeshStandardMaterial({color:'#f0f4ff',roughness:0.5}));skBodyR.position.y=0.47;sitKidR.add(skBodyR);
+    const scfLR=box(0.06,0.12,0.03,new THREE.MeshStandardMaterial({color:'#cc0000',roughness:0.3}));scfLR.position.set(-0.1,0.59,0.1);scfLR.rotation.z=0.4;sitKidR.add(scfLR);
+    const scfRR=box(0.06,0.12,0.03,new THREE.MeshStandardMaterial({color:'#cc0000',roughness:0.3}));scfRR.position.set(0.1,0.59,0.1);scfRR.rotation.z=-0.4;sitKidR.add(scfRR);
+    const sArmLR=new THREE.Mesh(new THREE.CapsuleGeometry(0.04,0.18,4,6),new THREE.MeshStandardMaterial({color:'#f0f4ff',roughness:0.5}));sArmLR.position.set(-0.15,0.47,0.18);sArmLR.rotation.z=0.2;sArmLR.rotation.x=0.2;sitKidR.add(sArmLR);
+    const sArmRR=new THREE.Mesh(new THREE.CapsuleGeometry(0.04,0.18,4,6),new THREE.MeshStandardMaterial({color:'#f0f4ff',roughness:0.5}));sArmRR.position.set(0.15,0.47,0.18);sArmRR.rotation.z=-0.2;sArmRR.rotation.x=0.2;sitKidR.add(sArmRR);
+    const skHeadR=new THREE.Mesh(new THREE.SphereGeometry(0.12,16),new THREE.MeshStandardMaterial({color:'#f5e0c0',roughness:0.5}));skHeadR.position.y=0.77;sitKidR.add(skHeadR);
+    const skHatR=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.13,0.1,12),new THREE.MeshStandardMaterial({color:'#ffcc00',roughness:0.4}));skHatR.position.y=0.85;sitKidR.add(skHatR);
+    sitKidR.position.set(3.7,0.13,5);sitKidR.rotation.y=Math.PI/2;add(R,sitKidR);
 
     // 灯光
     add(R, new THREE.PointLight('#ffe8b0', 14, 8, 2)).position.set(0, WH1-0.3, Z1);
 
+    // ==== 装饰 ===
+    // 钟 (黑板上方)
+    const clockG=new THREE.Group();
+    const clkBody=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.06,16),new THREE.MeshStandardMaterial({color:'#f5f0e8',roughness:0.3}));clkBody.position.y=0.03;clockG.add(clkBody);
+    const clkFace=box(0.19,0.02,0.01,new THREE.MeshStandardMaterial({color:'#fff',roughness:0.2}));clkFace.position.set(0,0.03,0.04);clockG.add(clkFace);
+    clockG.position.set(0,2.95,0.28);add(R,clockG);
+    // 后墙书架
+    const shelfH=box(1.5,0.06,0.3,new THREE.MeshStandardMaterial({color:'#8b6914',roughness:0.5}));shelfH.position.set(2,1.0,D1-0.2);add(R,shelfH);
+    for(let bi=0;bi<5;bi++){const bk=box(0.08+Math.random()*0.1,0.25+Math.random()*0.15,0.15,new THREE.MeshStandardMaterial({color:['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6'][bi],roughness:0.5}));bk.position.set(1.7+bi*0.16,1.12,D1-0.2);add(R,bk);}
+
+    // 黑板旁课程表 (右侧)
+    const scheduleCanvas=document.createElement('canvas');scheduleCanvas.width=100;scheduleCanvas.height=140;
+    const schctx=scheduleCanvas.getContext('2d');schctx.fillStyle='#faf0dc';schctx.fillRect(0,0,100,140);
+    schctx.strokeStyle='#333';schctx.lineWidth=1;
+    for(let r=0;r<5;r++){schctx.strokeRect(10,10+r*25,80,20);}
+    schctx.fillStyle='#333';schctx.font='10px serif';schctx.textAlign='center';
+    schctx.fillText('课程表',50,20);
+    schctx.font='8px serif';schctx.fillText('语文 数学 英语',50,45);
+    schctx.fillText('音乐 美术 体育',50,70);
+    schctx.fillText('科学 品德 班队',50,95);
+    const schedTex=new THREE.CanvasTexture(scheduleCanvas);schedTex.colorSpace=THREE.SRGBColorSpace;
+    const sched=new THREE.Mesh(new THREE.PlaneGeometry(0.6,0.85),new THREE.MeshBasicMaterial({map:schedTex}));
+    sched.position.set(2.2,1.8,0.22);add(R,sched);
+    // 黑板两侧对称花盆
+    for(let s=-1;s<=1;s+=2){
+      const potMat=new THREE.MeshStandardMaterial({color:'#c4652a',roughness:0.5});
+      const potBody=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.1,0.3,12),potMat);potBody.position.y=0.15;potBody.position.set(s*2.2,0.15,0.35);add(R,potBody);
+      for(let fi=0;fi<3;fi++){
+        const flower=new THREE.Mesh(new THREE.SphereGeometry(0.05,8),new THREE.MeshStandardMaterial({color:`hsl(${30+Math.random()*40},70%,60%)`,roughness:0.4}));
+        flower.position.set(s*2.2+(Math.random()-0.5)*0.15,0.35+Math.random()*0.15,0.35+(Math.random()-0.5)*0.1);add(R,flower);
+      }
+    }
+    // 左墙奖状墙 (画蜡笔画的小朋友背后, 贴墙平齐)
+    const certCanvas=document.createElement('canvas');certCanvas.width=140;certCanvas.height=100;
+    const cctx=certCanvas.getContext('2d');cctx.fillStyle='#d4a830';cctx.fillRect(0,0,140,100);
+    cctx.strokeStyle='#b8860b';cctx.lineWidth=3;cctx.strokeRect(5,5,130,90);
+    cctx.fillStyle='#1a1a1a';cctx.font='bold 28px serif';cctx.textAlign='center';cctx.fillText('奖 状',70,55);
+    cctx.fillStyle='#1a1a1a';cctx.font='10px serif';cctx.fillText('特发此状  以资鼓励',70,78);
+    const certTex=new THREE.CanvasTexture(certCanvas);certTex.colorSpace=THREE.SRGBColorSpace;
+    for(let r=0;r<4;r++){for(let c=0;c<5;c++){
+      const cert=new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.5),new THREE.MeshBasicMaterial({map:certTex}));
+      cert.position.set(-W/2+0.18,0.7+r*0.58,1.5+c*0.52);cert.rotation.y=Math.PI/2;add(R,cert);
+    }}
+    // 天花板纸吊饰 (彩色圆点)
+    for(let di=0;di<8;di++){const dot=new THREE.Mesh(new THREE.SphereGeometry(0.06,8),new THREE.MeshStandardMaterial({color:`hsl(${Math.random()*360},70%,60%)`,roughness:0.4}));dot.position.set(-3+Math.random()*6,WH1-0.3+Math.random()*0.2,1+Math.random()*5);add(R,dot);}
+
+    // ==== 交互展品 ====
+    // 黑板 MY DREAM
+    const bbi=new THREE.Mesh(new THREE.BoxGeometry(4,2,0.3),new THREE.MeshBasicMaterial({visible:false}));bbi.position.set(0,1.8,0.3);addInteractable(R,bbi,{type:'exhibit',title:'我的理想',content:'<p>黑板上用粉笔写着稚嫩的几个字——"MY DREAM"。</p><p>小学三年级的作文课，老师让我们写下自己的理想。我想当科学家，想去看星星，想画世界上最美的向日葵。</p><p>那时候不知道什么叫"不可能"，只知道想做什么，就写下来。</p>'});
+    // 钢琴
+    const pianoI=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,2),new THREE.MeshBasicMaterial({visible:false}));pianoI.position.set(4.5,0.7,5);addInteractable(R,pianoI,{type:'exhibit',title:'教室里的小钢琴',content:'<p>教室角落里有一架旧钢琴。音乐老师弹《小星星》的时候，全班都安静了。</p><p>后来我也试着弹过，只学会了前四个音。但每次听到钢琴声，都会想起那个阳光照进教室的下午。</p>'});
+    // 蜡笔画 (左桌)
+    const drawI=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.6,0.1),new THREE.MeshBasicMaterial({visible:false}));drawI.position.set(-4,0.72,5);addInteractable(R,drawI,{type:'exhibit',title:'蜡笔画',content:'<p>向日葵。老师说我画得不像，但妈妈把它贴在了冰箱上。</p><p>多年后我才明白，那些歪歪扭扭的线条里，藏着的不是技法，而是毫无保留的表达。</p>'});
+    // 奖状墙
+    const certI=new THREE.Mesh(new THREE.BoxGeometry(0.3,2.5,4),new THREE.MeshBasicMaterial({visible:false}));certI.position.set(-W/2+0.2,1.6,3);addInteractable(R,certI,{type:'exhibit',title:'奖状墙',content:'<p>满墙的奖状：数学竞赛、作文比赛、三好学生、优秀班干部……</p><p>每一张都代表一段被认可的努力。那时候的快乐很简单——拿一张奖状回家，妈妈就会做我最爱吃的红烧肉。</p>'});
+
     // ===== 房间2: 中学 — 青涩刻苦 =====
     const WH2 = 3.5;
-    const fl2 = box(W, 0.12, ROOM_D, new THREE.MeshStandardMaterial({color:'#8b7a6a', roughness:0.6})); fl2.position.set(0,-0.08,Z2); add(R,fl2);
-    const cl2 = box(W, 0.1, ROOM_D, new THREE.MeshStandardMaterial({color:'#e8e4dc', roughness:0.85})); cl2.position.set(0,WH2,Z2); add(R,cl2);
+    const fl2 = box(W, 0.12, D2, new THREE.MeshStandardMaterial({color:'#8b7a6a', roughness:0.6})); fl2.position.set(0,-0.08,Z2); add(R,fl2);
+    const cl2 = box(W, 0.1, D2, new THREE.MeshStandardMaterial({color:'#e8e4dc', roughness:0.85})); cl2.position.set(0,WH2,Z2); add(R,cl2);
     const w2Mat = new THREE.MeshStandardMaterial({color:'#e8f0e8', roughness:0.7});
-    wall(R, -W/2, Z2, 0.3, WH2, ROOM_D, w2Mat);
-    wall(R, W/2, Z2, 0.3, WH2, ROOM_D, w2Mat);
+    wall(R, -W/2, Z2, 0.3, WH2, D2, w2Mat);
+    wall(R, W/2, Z2, 0.3, WH2, D2, w2Mat);
     add(R, new THREE.PointLight('#f0f4ff', 16, 10, 2)).position.set(0, WH2-0.3, Z2);
 
     // ===== 房间3: 大学 — 自由探索 =====
     const WH3 = 4.0;
-    const fl3 = box(W, 0.12, ROOM_D, new THREE.MeshStandardMaterial({color:'#4a3528', roughness:0.5})); fl3.position.set(0,-0.08,Z3); add(R,fl3);
-    const cl3 = box(W, 0.1, ROOM_D, new THREE.MeshStandardMaterial({color:'#2a2520', roughness:0.85})); cl3.position.set(0,WH3,Z3); add(R,cl3);
+    const fl3 = box(W, 0.12, D3, new THREE.MeshStandardMaterial({color:'#4a3528', roughness:0.5})); fl3.position.set(0,-0.08,Z3); add(R,fl3);
+    const cl3 = box(W, 0.1, D3, new THREE.MeshStandardMaterial({color:'#2a2520', roughness:0.85})); cl3.position.set(0,WH3,Z3); add(R,cl3);
     const w3Mat = new THREE.MeshStandardMaterial({color:'#3a3a3a', roughness:0.7});
-    wall(R, -W/2, Z3, 0.3, WH3, ROOM_D, w3Mat);
-    wall(R, W/2, Z3, 0.3, WH3, ROOM_D, w3Mat);
+    wall(R, -W/2, Z3, 0.3, WH3, D3, w3Mat);
+    wall(R, W/2, Z3, 0.3, WH3, D3, w3Mat);
     // 终点墙 (砖墙感)
     wall(R, 0, totalZ, W+0.6, WH3, 0.3, new THREE.MeshStandardMaterial({color:'#4a3a2a', roughness:0.65}));
     // 窗户
@@ -1133,8 +1289,8 @@
       const fl2 = box(0.08, DOOR_H, 0.28, frm); fl2.position.set(-DOOR_W/2, DOOR_H/2, dz); add(R, fl2);
       const fr2 = box(0.08, DOOR_H, 0.28, frm); fr2.position.set(DOOR_W/2, DOOR_H/2, dz); add(R, fr2);
     }
-    dividerWall(10, w1Mat, WH1);
-    dividerWall(20, w2Mat, WH2);
+    dividerWall(D1, w1Mat, WH1);
+    dividerWall(D1+D2, w2Mat, WH2);
 
   })();
 
@@ -1850,6 +2006,8 @@
       // 重置角色位置到新场景入口
       if (target === 'corridor') {
         player.position.set(0, 0, 2.5);
+      } else if (target === 'present') {
+        player.position.set(0, 0, 3.5);
       } else {
         player.position.set(0, 0, 0.8);
       }
@@ -2025,6 +2183,166 @@
         }
       }
     });
+  }
+
+  // ============================================
+  //  房间音乐 (Meting API获取网易云直链)
+  // ============================================
+  const audioStar = new Audio('audio/tongnian.mp3'); audioStar.loop = true; audioStar.volume = 0.4;
+  const audioDream = new Audio('audio/zhuimeng.mp3'); audioDream.loop = true; audioDream.volume = 0.4;
+  let roomMusicOn = false;
+  let currentSong = null;
+
+  function stopRoomMusic() {
+    roomMusicOn = false; currentSong = null;
+    audioStar.pause(); audioStar.currentTime = 0;
+    audioDream.pause(); audioDream.currentTime = 0;
+  }
+
+  function startStarSong() {
+    if (roomMusicOn) stopRoomMusic();
+    currentSong = 'star'; roomMusicOn = true;
+    audioStar.play().catch(() => {});
+  }
+
+  function startDreamSong() {
+    if (roomMusicOn) stopRoomMusic();
+    currentSong = 'dream'; roomMusicOn = true;
+    audioDream.play().catch(() => {});
+  }
+
+  
+
+  // 小星星完整旋律 (带快慢节奏)
+  const starNotes = [
+    262,262,392,392,440,440,392, 349,349,330,330,294,294,262,
+    392,392,349,349,330,330,294, 392,392,349,349,330,330,294,
+    262,262,392,392,440,440,392, 349,349,330,330,294,294,262
+  ];
+  const starDur = [0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2];
+
+  // 追梦赤子心 - 副歌
+  const dreamNotes = [
+    392,330,294,262, 220,262,294,330, 392,330,294,262, 294,330,392,
+    392,440,523, 523,440,392,330, 294,330,392, 392,440,523,
+    523,440,392,330, 294,262,294,262
+  ];
+  const dreamDur = [0.3,0.3,0.3,0.5, 0.2,0.2,0.2,0.5, 0.3,0.3,0.3,0.5, 0.3,0.3,0.8, 0.25,0.25,0.5, 0.25,0.25,0.25,0.25, 0.3,0.3,0.8, 0.25,0.25,0.5, 0.25,0.25,0.25,0.25, 0.3,0.3,0.5,0.5];
+
+  
+  let starMusicOn = false;
+  let starAudioCtx = null;
+  let starGain = null;
+  const starMelody = [262,262,392,392,440,440,392, 349,349,330,330,294,294,262, 392,392,349,349,330,330,294, 392,392,349,349,330,330,294, 262,262,392,392,440,440,392, 349,349,330,330,294,294,262]; // C-C-G-G-A-A-G...
+  const starDurations = [0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1];
+  let starNoteIdx = 0;
+  let starNoteTimeout = null;
+  let starVolume = 0.25;
+  // UNUSED: music functions removed
+  function __unused_startStarMusic() {
+    if (starMusicOn) return;
+    if (!starAudioCtx) {
+      starAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      starGain = starAudioCtx.createGain();
+      starGain.gain.value = starVolume;
+      starGain.connect(starAudioCtx.destination);
+    }
+    if (starAudioCtx.state === 'suspended') starAudioCtx.resume();
+    starMusicOn = true;
+    starNoteIdx = 0;
+    playNextStarNote();
+  }
+
+  function stopStarMusic() {
+    starMusicOn = false;
+    if (starNoteTimeout) { clearTimeout(starNoteTimeout); starNoteTimeout = null; }
+  }
+
+  function playNextStarNote() {
+    if (!starMusicOn || !starAudioCtx) return;
+    const freq = starMelody[starNoteIdx % starMelody.length];
+    const duration = starDurations[starNoteIdx % starDurations.length];
+    // 主旋律 (三角波, 更有音乐感)
+    const osc = starAudioCtx.createOscillator();
+    const env = starAudioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    env.gain.setValueAtTime(0.2, starAudioCtx.currentTime);
+    env.gain.exponentialRampToValueAtTime(0.0001, starAudioCtx.currentTime + duration * 1.3);
+    osc.connect(env);env.connect(starGain);
+    osc.start(starAudioCtx.currentTime);osc.stop(starAudioCtx.currentTime + duration * 1.4);
+    // 低八度和声 (更丰富)
+    const osc2 = starAudioCtx.createOscillator();
+    const env2 = starAudioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.value = freq / 2;
+    env2.gain.setValueAtTime(0.08, starAudioCtx.currentTime);
+    env2.gain.exponentialRampToValueAtTime(0.0001, starAudioCtx.currentTime + duration * 1.5);
+    osc2.connect(env2);env2.connect(starGain);
+    osc2.start(starAudioCtx.currentTime);osc2.stop(starAudioCtx.currentTime + duration * 1.6);
+    starNoteIdx++;
+    starNoteTimeout = setTimeout(() => playNextStarNote(), duration * 800);
+  }
+
+  // ============================================
+  //  追梦赤子心 (中学房间)
+  // ============================================
+  let dreamMusicOn = false;
+  let dreamNoteIdx = 0;
+  let dreamNoteTimeout = null;
+  // 追梦赤子心 副歌旋律 (C大调)
+  const dreamMelody = [
+    392,330,294,262,  220,262,294,330,  392,330,294,262,  294,330,392,  392,330,294,262,  220,262,294,330,  392,330,294,262,  294,330,294,
+    392,440,523,  523,440,392,330,  294,330,392,  392,440,523,  523,440,392,330,  294,262,294,262
+  ];
+  const dreamDurations = [
+    0.4,0.4,0.4,0.5,  0.3,0.3,0.3,0.5,  0.4,0.4,0.4,0.5,  0.4,0.4,0.8,  0.4,0.4,0.4,0.5,  0.3,0.3,0.3,0.5,  0.4,0.4,0.4,0.5,  0.4,0.4,0.8,
+    0.3,0.3,0.6,  0.3,0.3,0.3,0.3,  0.4,0.4,0.8,  0.3,0.3,0.6,  0.3,0.3,0.3,0.3,  0.4,0.4,0.5,0.5
+  ];
+
+  function startDreamMusic() {
+    if (dreamMusicOn) return;
+    if (!starAudioCtx) {
+      starAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      starGain = starAudioCtx.createGain();
+      starGain.gain.value = starVolume;
+      starGain.connect(starAudioCtx.destination);
+    }
+    if (starAudioCtx.state === 'suspended') starAudioCtx.resume();
+    dreamMusicOn = true;
+    dreamNoteIdx = 0;
+    playNextDreamNote();
+  }
+
+  function stopDreamMusic() {
+    dreamMusicOn = false;
+    if (dreamNoteTimeout) { clearTimeout(dreamNoteTimeout); dreamNoteTimeout = null; }
+  }
+
+  function playNextDreamNote() {
+    if (!dreamMusicOn || !starAudioCtx) return;
+    const freq = dreamMelody[dreamNoteIdx % dreamMelody.length];
+    const duration = dreamDurations[dreamNoteIdx % dreamDurations.length];
+    // 主旋律
+    const osc = starAudioCtx.createOscillator();
+    const env = starAudioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    env.gain.setValueAtTime(0.25, starAudioCtx.currentTime);
+    env.gain.exponentialRampToValueAtTime(0.0001, starAudioCtx.currentTime + duration * 1.2);
+    osc.connect(env);env.connect(starGain);
+    osc.start(starAudioCtx.currentTime);osc.stop(starAudioCtx.currentTime + duration * 1.3);
+    // 低八度
+    const osc2 = starAudioCtx.createOscillator();
+    const env2 = starAudioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.value = freq / 2;
+    env2.gain.setValueAtTime(0.08, starAudioCtx.currentTime);
+    env2.gain.exponentialRampToValueAtTime(0.0001, starAudioCtx.currentTime + duration * 1.4);
+    osc2.connect(env2);env2.connect(starGain);
+    osc2.start(starAudioCtx.currentTime);osc2.stop(starAudioCtx.currentTime + duration * 1.5);
+    dreamNoteIdx++;
+    dreamNoteTimeout = setTimeout(() => playNextDreamNote(), duration * 700);
   }
 
   function animate() {
@@ -2216,6 +2534,15 @@
       helpEl.textContent = 'WASD 移动 | 空格跳跃 | 鼠标360°视角 | F 交互 | ESC 返回';
     } else {
       helpEl.textContent = 'WASD 移动 | 空格跳跃 | 鼠标360°视角 | E 进门 | F 查看展品';
+    }
+
+    // ===== 房间音乐自动切换 =====
+    if (currentScene === 'present' && player.position.z < 7) {
+      if (currentSong !== 'star') startStarSong();
+    } else if (currentScene === 'present' && player.position.z >= 7 && player.position.z < 17) {
+      if (currentSong !== 'dream') startDreamSong();
+    } else {
+      if (roomMusicOn) stopRoomMusic();
     }
 
     // ===== 天气自动循环 + 过渡 (仅过去之屋) =====
