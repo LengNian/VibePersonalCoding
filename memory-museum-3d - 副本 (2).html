@@ -1308,50 +1308,6 @@
     wall(R, W/2, Z2, 0.3, WH2, D2, w2Mat);
     add(R, new THREE.PointLight('#f0f4ff', 16, 10, 2)).position.set(0, WH2-0.3, Z2);
 
-    // ===== 天花板灯管 =====
-    function createFluorescentLight(x, z) {
-      const lightGroup = new THREE.Group();
-      // 灯管外壳
-      const tube = box(2.5, 0.08, 0.15, new THREE.MeshStandardMaterial({color:'#d0d0d0', roughness:0.3}));
-      tube.position.y = 0.04;
-      lightGroup.add(tube);
-      // 两端金属座
-      const capL = box(0.12, 0.12, 0.18, new THREE.MeshStandardMaterial({color:'#8a8a8a', roughness:0.2, metalness:0.6}));
-      capL.position.set(-1.25, 0.06, 0);
-      lightGroup.add(capL);
-      const capR = box(0.12, 0.12, 0.18, new THREE.MeshStandardMaterial({color:'#8a8a8a', roughness:0.2, metalness:0.6}));
-      capR.position.set(1.25, 0.06, 0);
-      lightGroup.add(capR);
-      // 发光层 - 增强发光效果
-      const glow = box(2.4, 0.03, 0.12, new THREE.MeshBasicMaterial({color:'#ffffff', transparent:true, opacity:0.9}));
-      glow.position.y = 0.06;
-      lightGroup.add(glow);
-      // 外发光效果
-      const outerGlow = box(2.6, 0.06, 0.15, new THREE.MeshBasicMaterial({color:'#c0e8ff', transparent:true, opacity:0.4}));
-      outerGlow.position.y = 0.06;
-      lightGroup.add(outerGlow);
-      // 多个点光源照明
-      const pointLight1 = new THREE.PointLight('#f8f8ff', 6, 8, 2);
-      pointLight1.position.set(-1, 0.05, 0);
-      lightGroup.add(pointLight1);
-      const pointLight2 = new THREE.PointLight('#f8f8ff', 6, 8, 2);
-      pointLight2.position.set(0, 0.05, 0);
-      lightGroup.add(pointLight2);
-      const pointLight3 = new THREE.PointLight('#f8f8ff', 6, 8, 2);
-      pointLight3.position.set(1, 0.05, 0);
-      lightGroup.add(pointLight3);
-      
-      lightGroup.position.set(x, WH2 - 0.05, z);
-      add(R, lightGroup);
-    }
-    
-    // 三排灯管（均匀分布在中学教室范围内）
-    for (let row = 0; row < 3; row++) {
-      const zPos = Z2 - 3 + row * 3;
-      createFluorescentLight(-2.5, zPos);
-      createFluorescentLight(2.5, zPos);
-    }
-
     // ===== 课桌区域 (左侧) =====
     const deskMat = new THREE.MeshStandardMaterial({color:'#8b6914', roughness:0.5});
     const deskTopMat = new THREE.MeshStandardMaterial({color:'#a08050', roughness:0.4});
@@ -1495,22 +1451,22 @@
 
     // ===== 倒计时牌 (右侧墙上) =====
     const countdownCanvas = document.createElement('canvas');
-    countdownCanvas.width = 600;
-    countdownCanvas.height = 300;
+    countdownCanvas.width = 300;
+    countdownCanvas.height = 150;
     const cdctx = countdownCanvas.getContext('2d');
     cdctx.fillStyle = '#ff3333';
-    cdctx.fillRect(0, 0, 600, 300);
+    cdctx.fillRect(0, 0, 300, 150);
     cdctx.fillStyle = '#ffffff';
-    cdctx.font = 'bold 48px serif';
+    cdctx.font = 'bold 24px serif';
     cdctx.textAlign = 'center';
-    cdctx.fillText('距离高考', 300, 100);
-    cdctx.font = 'bold 96px serif';
-    cdctx.fillText('286', 300, 220);
-    cdctx.font = 'bold 32px serif';
-    cdctx.fillText('天', 440, 230);
+    cdctx.fillText('距离高考', 150, 50);
+    cdctx.font = 'bold 48px serif';
+    cdctx.fillText('286', 150, 110);
+    cdctx.font = '16px serif';
+    cdctx.fillText('天', 220, 115);
     const cdTex = new THREE.CanvasTexture(countdownCanvas);
     cdTex.colorSpace = THREE.SRGBColorSpace;
-    const countdown = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.8), new THREE.MeshBasicMaterial({map:cdTex}));
+    const countdown = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.9), new THREE.MeshBasicMaterial({map:cdTex}));
     countdown.position.set(W/2 - 0.16, 2.2, D1 + 3);
     countdown.rotation.y = -Math.PI/2;
     add(R, countdown);
@@ -1542,7 +1498,7 @@
 
     // ===== 卫生角 (左后角，房间2最后面) =====
     const cornerX = -W/2 + 0.8;
-    const backZ = D1 + D2 - 0.3;
+    const backZ = D1 + D2 - 1;
     
     // 扫帚
     const broom = new THREE.Group();
@@ -1551,9 +1507,9 @@
     broomStick.rotation.z = 0.3;
     broom.add(broomStick);
     const broomHead = box(0.04, 0.4, 0.3, new THREE.MeshStandardMaterial({color:'#6b4423', roughness:0.7}));
-    broomHead.position.set(0.18, 0.35, 0);
+    broomHead.position.set(0.18, 0.22, 0);
     broom.add(broomHead);
-    broom.position.set(cornerX, 0.02, backZ);
+    broom.position.set(cornerX, 0, backZ);
     add(R, broom);
     
     // 拖把
@@ -1563,9 +1519,9 @@
     mopStick.rotation.z = -0.2;
     mop.add(mopStick);
     const mopHead = box(0.03, 0.15, 0.35, new THREE.MeshStandardMaterial({color:'#2a4a6a', roughness:0.6}));
-    mopHead.position.set(-0.15, 0.15, 0);
+    mopHead.position.set(-0.15, 0.08, 0);
     mop.add(mopHead);
-    mop.position.set(cornerX + 0.4, 0.02, backZ);
+    mop.position.set(cornerX + 0.4, 0, backZ);
     add(R, mop);
     
     // 垃圾桶
@@ -1576,9 +1532,9 @@
     const canLid = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.05, 16), new THREE.MeshStandardMaterial({color:'#4a4a4a', roughness:0.4}));
     canLid.position.y = 0.42;
     trashCan.add(canLid);
-    trashCan.position.set(cornerX + 0.9, 0.02, backZ - 0.3);
+    trashCan.position.set(cornerX + 0.9, 0.02, backZ);
     add(R, trashCan);
-    addCollider(R, cornerX + 0.9, backZ - 0.3, 0.6, 0.6);
+    addCollider(R, cornerX + 0.9, backZ, 0.6, 0.6);
 
     // ===== 体育道具区 (右后角，房间2最后面) =====
     const sportX = W/2 - 1.5;
@@ -1605,11 +1561,61 @@
     
 
     
+    // 暗恋的纸条 (贴在右侧墙上)
+    const noteCanvas = document.createElement('canvas');
+    noteCanvas.width = 100;
+    noteCanvas.height = 80;
+    const nctx = noteCanvas.getContext('2d');
+    nctx.fillStyle = '#fff8dc';
+    nctx.fillRect(0, 0, 100, 80);
+    nctx.strokeStyle = '#d4c4a8';
+    nctx.lineWidth = 2;
+    nctx.strokeRect(2, 2, 96, 76);
+    nctx.fillStyle = '#333';
+    nctx.font = '10px serif';
+    nctx.fillText('我喜欢你', 50, 35);
+    nctx.fillText('但不敢说', 50, 55);
+    nctx.textAlign = 'center';
+    const noteTex = new THREE.CanvasTexture(noteCanvas);
+    noteTex.colorSpace = THREE.SRGBColorSpace;
+    const note = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.4), new THREE.MeshBasicMaterial({map:noteTex}));
+    note.position.set(W/2 - 0.15, 1.8, D1 + 2);
+    note.rotation.y = -Math.PI/2;
+    note.rotation.z = 0.05;
+    add(R, note);
+    
+    // 更多纸条
+    const note2Canvas = document.createElement('canvas');
+    note2Canvas.width = 80;
+    note2Canvas.height = 100;
+    const n2ctx = note2Canvas.getContext('2d');
+    n2ctx.fillStyle = '#ffe4e1';
+    n2ctx.fillRect(0, 0, 80, 100);
+    n2ctx.fillStyle = '#555';
+    n2ctx.font = '8px serif';
+    n2ctx.textAlign = 'left';
+    n2ctx.fillText('XXX同学:', 5, 20);
+    n2ctx.fillText('祝你考', 5, 35);
+    n2ctx.fillText('上理想', 5, 50);
+    n2ctx.fillText('的大学!', 5, 65);
+    const note2Tex = new THREE.CanvasTexture(note2Canvas);
+    note2Tex.colorSpace = THREE.SRGBColorSpace;
+    const note2 = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.5), new THREE.MeshBasicMaterial({map:note2Tex}));
+    note2.position.set(W/2 - 0.15, 1.6, D1 + 4);
+    note2.rotation.y = -Math.PI/2;
+    note2.rotation.z = -0.08;
+    add(R, note2);
+
     // ===== 交互展品 =====
     // 倒计时牌
     const cdInteract = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 0.2), new THREE.MeshBasicMaterial({visible:false}));
     cdInteract.position.set(W/2 - 0.2, 2.2, D1 + 3);
     addInteractable(R, cdInteract, {type:'exhibit', title:'高考倒计时', content:'<p>"距离高考 286 天"</p><p>红色的数字每天都会变化。那时候觉得286天很长，现在回想，不过是弹指一挥间。</p><p>黑板上的公式还在，课桌上的刻痕还在，只是那些并肩奋斗的人，早已散落天涯。</p>'});
+    
+    // 暗恋纸条
+    const noteInteract = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.2), new THREE.MeshBasicMaterial({visible:false}));
+    noteInteract.position.set(sportX - 0.3, 1.8, D1 + 2.1);
+    addInteractable(R, noteInteract, {type:'exhibit', title:'墙上的纸条', content:'<p>"我喜欢你，但不敢说。"</p><p>不知道是谁写的，也不知道写给谁。课间的时候，大家都会偷偷看这张纸条，然后心照不宣地笑。</p><p>青春就是这样，有些话，永远说不出口。</p>'});
     
     // ===== 目标墙 (左侧墙上半部分) =====
     const goalCanvas = document.createElement('canvas');
@@ -1645,10 +1651,10 @@
     });
     const goalTex = new THREE.CanvasTexture(goalCanvas);
     goalTex.colorSpace = THREE.SRGBColorSpace;
-    const goalWall = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.8), new THREE.MeshStandardMaterial({map:goalTex, roughness:0.8, metalness:0.05}));
-    goalWall.position.set(-W/2 + 0.16, 2.8, D1 + 5);
+    goalTex.needsUpdate = true;
+    const goalWall = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.8), new THREE.MeshBasicMaterial({map:goalTex}));
+    goalWall.position.set(-W/2 + 0.15, 2.8, D1 + 5);
     goalWall.rotation.y = Math.PI/2;
-    goalWall.receiveShadow = true;
     add(R, goalWall);
     
     const goalInteract = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.8, 8), new THREE.MeshBasicMaterial({visible:false}));
@@ -1680,14 +1686,14 @@
     });
     const honorTex1 = new THREE.CanvasTexture(honorCanvas1);
     honorTex1.colorSpace = THREE.SRGBColorSpace;
-    const honorWall1 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), new THREE.MeshStandardMaterial({map:honorTex1, roughness:0.8, metalness:0.05}));
-    honorWall1.position.set(W/2 - 0.16, 1.6, Z2 + 2);
+    honorTex1.needsUpdate = true;
+    const honorWall1 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), new THREE.MeshBasicMaterial({map:honorTex1}));
+    honorWall1.position.set(W/2 - 0.15, 1.6, Z2);
     honorWall1.rotation.y = -Math.PI/2;
-    honorWall1.receiveShadow = true;
     add(R, honorWall1);
     
     const honorInteract1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2, 1), new THREE.MeshBasicMaterial({visible:false}));
-    honorInteract1.position.set(W/2 - 0.2, 1.6, Z2 + 2);
+    honorInteract1.position.set(W/2 - 0.2, 1.6, Z2);
     addInteractable(R, honorInteract1, {type:'exhibit', title:'光荣榜', content:'<p>每次大考后，榜单就会更新。</p><p>有人稳居前列，有人奋力追赶。</p><p>那时候，分数似乎是衡量一切的标尺。</p>'});
     
     // ===== 光荣榜2 (右侧墙右边) =====
@@ -1715,14 +1721,14 @@
     });
     const honorTex2 = new THREE.CanvasTexture(honorCanvas2);
     honorTex2.colorSpace = THREE.SRGBColorSpace;
-    const honorWall2 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), new THREE.MeshStandardMaterial({map:honorTex2, roughness:0.8, metalness:0.05}));
-    honorWall2.position.set(W/2 - 0.16, 1.6, Z2 + 4);
+    honorTex2.needsUpdate = true;
+    const honorWall2 = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2), new THREE.MeshBasicMaterial({map:honorTex2}));
+    honorWall2.position.set(W/2 - 0.15, 1.6, D1 + 2);
     honorWall2.rotation.y = -Math.PI/2;
-    honorWall2.receiveShadow = true;
     add(R, honorWall2);
     
     const honorInteract2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2, 1), new THREE.MeshBasicMaterial({visible:false}));
-    honorInteract2.position.set(W/2 - 0.2, 1.6, Z2 + 4);
+    honorInteract2.position.set(W/2 - 0.2, 1.6, D1 + 2);
     addInteractable(R, honorInteract2, {type:'exhibit', title:'月考光荣榜', content:'<p>每月一次的月考，是检验学习成果的标尺。</p><p>有人进步，有人退步。</p><p>那些名字背后，是无数个挑灯夜读的夜晚。</p>'});
     
     // ===== 错题墙 (左侧墙下半部分) =====
@@ -1762,10 +1768,10 @@
     });
     const wrongTex = new THREE.CanvasTexture(wrongCanvas);
     wrongTex.colorSpace = THREE.SRGBColorSpace;
-    const wrongWall = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.8), new THREE.MeshStandardMaterial({map:wrongTex, roughness:0.8, metalness:0.05}));
-    wrongWall.position.set(-W/2 + 0.16, 0.8, D1 + 5);
+    wrongTex.needsUpdate = true;
+    const wrongWall = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.8), new THREE.MeshBasicMaterial({map:wrongTex}));
+    wrongWall.position.set(-W/2 + 0.15, 0.8, D1 + 5);
     wrongWall.rotation.y = Math.PI/2;
-    wrongWall.receiveShadow = true;
     add(R, wrongWall);
     
     const wrongInteract = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.8, 8), new THREE.MeshBasicMaterial({visible:false}));
