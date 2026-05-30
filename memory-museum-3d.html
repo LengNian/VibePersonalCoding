@@ -2854,6 +2854,51 @@
     const fenceRightFrame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, SIZE * 0.5), fenceFrameMat);
     fenceRightFrame.position.set(SIZE / 2 - 0.12, 0.03, -SIZE * 0.24); add(R, fenceRightFrame);
 
+    // 阳台一圈绿植
+    const balconyPotMat = new THREE.MeshStandardMaterial({ color: '#8b4513', roughness: 0.8 });
+    const balconyLeafMat = new THREE.MeshStandardMaterial({ color: '#228b22', roughness: 0.6 });
+    const balconyLeafDarkMat = new THREE.MeshStandardMaterial({ color: '#006400', roughness: 0.6 });
+    function addBalconyPlant(x, z, scale = 1) {
+      const balconyPlant = new THREE.Group();
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.15 * scale, 0.12 * scale, 0.25 * scale, 8), balconyPotMat);
+      pot.position.y = 0.125 * scale; balconyPlant.add(pot);
+      const leaves = [];
+      for (let i = 0; i < 5; i++) {
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.2 * scale, 8, 6), i % 2 === 0 ? balconyLeafMat : balconyLeafDarkMat);
+        leaf.scale.set(1, 0.6, 1);
+        leaf.position.set((Math.random() - 0.5) * 0.2 * scale, 0.3 * scale + Math.random() * 0.2 * scale, (Math.random() - 0.5) * 0.2 * scale);
+        leaves.push(leaf); balconyPlant.add(leaf);
+      }
+      balconyPlant.position.set(x, 0, z);
+      add(R, balconyPlant);
+    }
+    for (let i = 0; i < 10; i++) addBalconyPlant(-6 + i * 1.3, -6.2, 1);
+     for (let i = 0; i < 2; i++) addBalconyPlant(-6.2, -2 + i * 1.3, 1);
+     for (let i = 0; i < 2; i++) addBalconyPlant(6.2, -2 + i * 1.3, 1);
+
+    // 阳台长椅
+    const benchGroup = new THREE.Group();
+    const benchMat = new THREE.MeshStandardMaterial({ color: '#8b4513', roughness: 0.6 });
+    const benchSeat = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.08, 0.6), benchMat);
+    benchSeat.position.set(0, 0.45, 0); benchGroup.add(benchSeat);
+    const benchBack = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.5, 0.06), benchMat);
+    benchBack.position.set(0, 0.75, -0.27); benchGroup.add(benchBack);
+    for (let x = -1; x <= 1; x += 0.5) {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.45, 0.5), benchMat);
+      leg.position.set(x, 0.225, 0); benchGroup.add(leg);
+    }
+    benchGroup.position.set(-3.5, 0, -1);
+    benchGroup.rotation.y = Math.PI;
+    add(R, benchGroup);
+
+    // 露台长椅交互
+    const benchInteract = new THREE.Mesh(new THREE.BoxGeometry(3, 1, 1.2), new THREE.MeshBasicMaterial({ visible: false }));
+    benchInteract.position.set(-3.5, 0.6, -1);
+    addInteractable(R, benchInteract, {
+      type:'exhibit', title:'露台长椅',
+      content:'<p>未来某个温柔的夜晚，我们坐在这张长椅上。城市在脚下铺开成一片灯海，头顶是深蓝的天幕和忽明忽暗的星星。</p><p>她靠在我肩上，也许怀里还抱着熟睡的宝宝。风吹过来，带着远处夜来香的甜味。</p><p>我们会聊什么呢——明天的计划？十年前的故事？还是什么都不说，就这样静静地坐很久很久。</p>'
+    });
+
     // ---- 2. 时光球 (阳台中央偏左) ----
     const timeSphereGroup = new THREE.Group();
     const sphereGeo = new THREE.SphereGeometry(0.55, 48, 48);
@@ -2922,17 +2967,17 @@
     
     // 门框顶部
     const doorFrameTop = box(4.4, 0.15, 0.15, doorFrameMat);
-    doorFrameTop.position.set(0, 3.65, 0); add(R, doorFrameTop);
+    doorFrameTop.position.set(0, 3.825, 0); add(R, doorFrameTop);
     
     // 门框左侧
-    const doorFrameLeft = box(0.15, 3.5, 0.12, doorFrameMat);
-    doorFrameLeft.position.set(-2.2, 1.75, 0); add(R, doorFrameLeft);
+    const doorFrameLeft = box(0.15, 3.65, 0.12, doorFrameMat);
+    doorFrameLeft.position.set(-2.2, 1.825, 0); add(R, doorFrameLeft);
     
     // 门框右侧
-    const doorFrameRight = box(0.15, 3.5, 0.12, doorFrameMat);
-    doorFrameRight.position.set(2.2, 1.75, 0); add(R, doorFrameRight);
+    const doorFrameRight = box(0.15, 3.65, 0.12, doorFrameMat);
+    doorFrameRight.position.set(2.2, 1.825, 0); add(R, doorFrameRight);
     
-    // 玻璃墙 - 透明隔断（左侧部分）
+    // 玻璃墙 - 透明隔断
     const glassWallMat = new THREE.MeshPhysicalMaterial({ 
       color: '#aaddff', 
       transparent: true, 
@@ -2945,12 +2990,17 @@
     });
     
     // 左侧玻璃墙
-    const glassWallLeft = box(3.9, 3.5, 0.08, glassWallMat);
-    glassWallLeft.position.set(-3.75, 1.75, 0); add(R, glassWallLeft);
+    const glassWallLeft = box(4.3, 3.65, 0.08, glassWallMat);
+    glassWallLeft.position.set(-4.35, 1.825, 0); add(R, glassWallLeft);
     
     // 右侧玻璃墙
-    const glassWallRight = box(3.9, 3.5, 0.08, glassWallMat);
-    glassWallRight.position.set(3.75, 1.75, 0); add(R, glassWallRight);
+    const glassWallRight = box(4.3, 3.65, 0.08, glassWallMat);
+    glassWallRight.position.set(4.35, 1.825, 0); add(R, glassWallRight);
+
+    // 门上横梁装饰
+    const doorBeamMat = new THREE.MeshStandardMaterial({ color: '#88aabb', roughness: 0.3, metalness: 0.6 });
+    const doorBeam = box(4.4, 0.08, 0.1, doorBeamMat);
+    doorBeam.position.set(0, 3.73, 0); add(R, doorBeam);
     
     // 玻璃门（中间开口处）- 可推开的感觉
     const doorGlassMat = new THREE.MeshPhysicalMaterial({ 
@@ -2982,19 +3032,22 @@
     doorGlassRight.userData.openZ = 1.2;
     add(R, doorGlassRight);
     
-    // 门上横梁装饰
-    const doorBeamMat = new THREE.MeshStandardMaterial({ color: '#88aabb', roughness: 0.3, metalness: 0.6 });
-    const doorBeam = box(4.4, 0.08, 0.1, doorBeamMat);
-    doorBeam.position.set(0, 3.45, 0); add(R, doorBeam);
-    
+
     // 门口发光门帘效果 - 温暖的金色
     const doorGlowMat = new THREE.MeshBasicMaterial({ color: '#ffcc88', transparent: true, opacity: 0.4 });
-    const doorGlowL = box(0.04, 3.5, 0.04, doorGlowMat);
-    doorGlowL.position.set(-2.2, 1.75, 0.05); add(R, doorGlowL);
-    const doorGlowR = box(0.04, 3.5, 0.04, doorGlowMat);
-    doorGlowR.position.set(2.2, 1.75, 0.05); add(R, doorGlowR);
+    const doorGlowL = box(0.04, 3.65, 0.04, doorGlowMat);
+    doorGlowL.position.set(-2.2, 1.825, 0.05); add(R, doorGlowL);
+    const doorGlowR = box(0.04, 3.65, 0.04, doorGlowMat);
+    doorGlowR.position.set(2.2, 1.825, 0.05); add(R, doorGlowR);
     const doorGlowT = box(4.4, 0.04, 0.04, doorGlowMat);
-    doorGlowT.position.set(0, 3.5, 0.05); add(R, doorGlowT);
+    doorGlowT.position.set(0, 3.825, 0.05); add(R, doorGlowT);
+
+    // 玻璃墙碰撞体 (固定墙体，始终阻挡，与卧室侧墙无缝衔接)
+    addCollider(R, -4.35, 0, 4.3, 0.3);          // 左侧玻璃墙 (-6.5 ~ -2.2)
+    addCollider(R, 4.35, 0, 4.3, 0.3);           // 右侧玻璃墙 (2.2 ~ 6.5)
+    // 玻璃门碰撞体 (滑动门，关闭时阻挡，需检测实际开启状态)
+    addCollider(R, -1.15, 0, 1.8, 0.4, 'glassdoor');
+    addCollider(R, 1.15, 0, 1.8, 0.4, 'glassdoor');
 
     // 全息栏杆碰撞体
     // 远侧栏杆（z方向）
@@ -3114,6 +3167,9 @@
     babyBedGroup.position.set(-5.95, 0, 4.8); // 紧贴左墙，紧挨着双人床，长边与双人床平行
     babyBedGroup.rotation.y = 0; // 不旋转，长边与双人床平行
     add(R, babyBedGroup);
+    const babyBedInteract = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 2.6), new THREE.MeshBasicMaterial({ visible: false }));
+    babyBedInteract.position.set(-5.95, 0.8, 4.8);
+    addInteractable(R, babyBedInteract, { type: 'exhibit', title: '婴儿床', content: '<p>宝宝已经来到了我们的世界。小小的人儿躺在小床里，呼吸均匀，睫毛轻轻颤动。</p><p>有时候半夜会哭，我抱着他在房间里来回走，边走边哼不成调的歌。等他终于安静下来，天都快亮了——但看着他熟睡的小脸，困意就消散了。</p><p>每一个细节都精心挑选，只想给宝宝最安全、最温暖的港湾。</p>' });
 
     // 婴儿玩耍区 (红色方框位置)
     const playAreaGroup = new THREE.Group();
@@ -3152,6 +3208,14 @@
     ball.position.set(-0.1, 0.1, -0.1); playAreaGroup.add(ball);
     
     add(R, playAreaGroup);
+
+    // 婴儿玩耍区交互
+    const playAreaInteract = new THREE.Mesh(new THREE.BoxGeometry(2, 0.5, 2), new THREE.MeshBasicMaterial({ visible: false }));
+    playAreaInteract.position.set(-2, 0.25, 4.5);
+    addInteractable(R, playAreaInteract, {
+      type:'exhibit', title:'宝宝的乐园',
+      content:'<p>彩色积木、毛绒小熊、叮当作响的摇铃、滚来滚去的小皮球……</p><p>这是为即将到来的宝宝准备的小小乐园。想象他第一次伸出小手抓住积木，第一次摇响铃铛时咯咯笑起来的样子——光是想象，心就化了。</p><p>未来的某一天，这里会充满奶香和笑声，而我会蹲在垫子边上，当一个永远看不够的爸爸。</p>'
+    });
 
     // 梳妆台 (靠近婴儿床的另一侧，右前角)
     const dressingTableGroup = new THREE.Group();
@@ -3201,6 +3265,14 @@
     chairGroup.position.set(4.6, 0, 2.5); 
     chairGroup.rotation.y = Math.PI / 2;
     add(R, chairGroup);
+
+    // 梳妆台交互
+    const dressingTableInteract = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 1), new THREE.MeshBasicMaterial({ visible: false }));
+    dressingTableInteract.position.set(5.8, 1.2, 2.5);
+    addInteractable(R, dressingTableInteract, {
+      type:'exhibit', title:'妻子的梳妆台',
+      content:'<p>这是特意为妻子准备的梳妆台。原木色的桌面，温柔的灯光，精致的化妆品整齐摆放。</p><p>每天早上她坐在这里，阳光透过窗帘洒在她身上——那是我见过最美的画面。</p><p>未来的家里，这个角落永远属于她。瓶瓶罐罐里装的不是化妆品，是每一个平凡的清晨里，我对她安静的注视。</p>'
+    });
 
     // 沙发 (靠近玻璃门区域，靠墙)
     const sofaGroup = new THREE.Group();
@@ -3301,6 +3373,14 @@
     weddingPhotoGroup.rotation.y = Math.PI;  // 照片朝外
     add(R, weddingPhotoGroup);
 
+    // 结婚照交互
+    const weddingPhotoInteract = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2, 0.3), new THREE.MeshBasicMaterial({ visible: false }));
+    weddingPhotoInteract.position.set(0, 2.5, 6.375);
+    addInteractable(R, weddingPhotoInteract, {
+      type:'exhibit', title:'我们的婚纱照',
+      content:'<p>这是我们最重要的时刻——穿着西装和婚纱，在镜头前许下了一生的承诺。</p><p>照片里的她笑得那么灿烂，眼睛里装着整个星空。那天阳光正好，她握紧我的手说"我愿意"——那一刻，我觉得自己是世界上最幸运的人。</p><p>这张照片挂在未来之室的墙上，提醒我：无论走多远，家永远是归处，她永远是光。</p>'
+    });
+
     // 空调 (壁挂式，安装在右墙)
     const acGroup = new THREE.Group();
     const acBody = box(1.2, 0.35, 0.25, new THREE.MeshStandardMaterial({ color: '#e8e8e8', roughness: 0.2 }));
@@ -3368,12 +3448,12 @@
     
     // 门框发光效果 - 温暖的金色
     const futureDoorGlowMat = new THREE.MeshBasicMaterial({ color: '#ffcc88', transparent: true, opacity: 0.6 });
-    const futureDoorGlowL = box(0.04, 3.8, 0.04, futureDoorGlowMat);
-    futureDoorGlowL.position.set(-2, 1.9, 0); add(R, futureDoorGlowL);
-    const futureDoorGlowR = box(0.04, 3.8, 0.04, futureDoorGlowMat);
-    futureDoorGlowR.position.set(2, 1.9, 0); add(R, futureDoorGlowR);
+    const futureDoorGlowL = box(0.04, 3.65, 0.04, futureDoorGlowMat);
+    futureDoorGlowL.position.set(-2, 1.825, 0); add(R, futureDoorGlowL);
+    const futureDoorGlowR = box(0.04, 3.65, 0.04, futureDoorGlowMat);
+    futureDoorGlowR.position.set(2, 1.825, 0); add(R, futureDoorGlowR);
     const futureDoorGlowT = box(4, 0.04, 0.04, futureDoorGlowMat);
-    futureDoorGlowT.position.set(0, 3.9, 0); add(R, futureDoorGlowT);
+    futureDoorGlowT.position.set(0, 3.825, 0); add(R, futureDoorGlowT);
 
     // 天花板装饰灯带 - 温暖的金色光
     const futureCeilingLightMat = new THREE.MeshBasicMaterial({ color: '#ffcc88', transparent: true, opacity: 0.6 });
@@ -3425,6 +3505,32 @@
     addCollider(R, SIZE / 2, SIZE / 4, 0.12, SIZE / 2);
     // 后墙
     addCollider(R, 0, SIZE / 2, SIZE, 0.12);
+
+    // ===== 家具碰撞体 =====
+    // 时光球底座 (阳台中央偏左)
+    addCollider(R, -2.8, -3.5, 1.2, 1.2);
+    // 天文望远镜 (阳台右侧)
+    addCollider(R, 3.5, -3.8, 2.2, 1.0);
+    // 露台长椅 (阳台左侧)
+    addCollider(R, -3.5, -1, 2.8, 1.0);
+
+    // AI管家 (卧室右前)
+    addCollider(R, 5.8, 0.5, 0.9, 0.9);
+    // 量子衣橱 (卧室右后)
+    addCollider(R, 5.8, 5, 0.8, 1.6);
+    // 悬浮床 (卧室左侧)
+    addCollider(R, -4.3, 4.8, 2.4, 2.8);
+    // 婴儿床 (卧室左前，紧贴左墙)
+    addCollider(R, -5.95, 4.8, 1.2, 2.8);
+    // 婴儿玩耍区 (卧室中部)
+    addCollider(R, -2, 4.5, 2.2, 2.2);
+    // 梳妆台+椅子 (卧室右前)
+    addCollider(R, 5.2, 2.5, 2.2, 1.0);
+    // 沙发 (卧室后墙前)
+    addCollider(R, 0, 5, 2.6, 1.2);
+    // 门框柱子 (避免穿门框)
+    addCollider(R, -2.2, 0, 0.3, 0.3);
+    addCollider(R, 2.2, 0, 0.3, 0.3);
   })();
 
   // ============================================
@@ -3941,6 +4047,11 @@
       const halfD = col.d / 2 + PLAYER_RADIUS;
       if (px > col.x - halfW && px < col.x + halfW &&
           pz > col.z - halfD && pz < col.z + halfD) {
+        // 玻璃门：检测门是否已滑开
+        if (col.tag === 'glassdoor') {
+          if (isGlassDoorOpen()) continue; // 门已打开，允许通过
+          return { block: true };          // 门未打开，阻挡
+        }
         // 检查是否是门碰撞器
         if (col.tag && ['past','present','future','curator'].includes(col.tag)) {
           return { block: true, door: col.tag };
@@ -3949,6 +4060,18 @@
       }
     }
     return { block: false };
+  }
+  // 检查未来之室的玻璃门是否已滑开 (任一扇门移动超过0.4即认为打开)
+  function isGlassDoorOpen() {
+    if (currentScene !== 'future') return false;
+    const children = activeSceneData.group.children;
+    for (let i = 0; i < children.length; i++) {
+      const c = children[i];
+      if (c.userData && c.userData.isDoorGlass) {
+        if (Math.abs(c.position.z - c.userData.closedZ) < 0.4) return false;
+      }
+    }
+    return true;
   }
 
   // 最近的门距离
