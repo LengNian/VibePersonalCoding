@@ -2194,7 +2194,7 @@
     fullMirror.rotation.y = Math.PI / 2;
     add(R, fullMirror);
 
-    // ===== 行李箱 (左墙，毕业回家) =====
+    // ===== 行李箱 (进门墙左墙角，毕业回家) =====
     const luggage = new THREE.Group();
     const lugBody = box(0.45, 0.65, 0.28, new THREE.MeshStandardMaterial({color:'#2a4a6a', roughness:0.4}));
     lugBody.position.y = 0.35; luggage.add(lugBody);
@@ -2215,9 +2215,91 @@
         lugWheel.position.set(lx * 0.18, 0.05, lz * 0.1); luggage.add(lugWheel);
       }
     }
-    luggage.position.set(-W/2 + 1.8, 0.02, Z3 - 0.5);
-    luggage.rotation.y = 0.15;
+    luggage.position.set(-W/2 + 0.8, 0.02, D1 + D2 + 1);  // 第三个房间左墙角
+    luggage.rotation.y = Math.PI / 2;  // 靠在左墙上
     add(R, luggage);
+
+    // ===== 第二个行李箱 (小号，放在旁边) =====
+    const luggage2 = new THREE.Group();
+    const lugBody2 = box(0.35, 0.5, 0.22, new THREE.MeshStandardMaterial({color:'#8b4513', roughness:0.4}));
+    lugBody2.position.y = 0.27; luggage2.add(lugBody2);
+    const lugTop2 = box(0.35, 0.06, 0.22, new THREE.MeshStandardMaterial({color:'#6b3503', roughness:0.4}));
+    lugTop2.position.y = 0.54; luggage2.add(lugTop2);
+    const lugHandle2 = box(0.03, 0.18, 0.03, new THREE.MeshStandardMaterial({color:'#333', roughness:0.3}));
+    lugHandle2.position.set(0, 0.65, 0.09); luggage2.add(lugHandle2);
+    const lugStripe2 = box(0.36, 0.06, 0.01, new THREE.MeshStandardMaterial({color:'#d4af37', roughness:0.5}));
+    lugStripe2.position.set(0, 0.3, 0.115); luggage2.add(lugStripe2);
+    for (let lx = -1; lx <= 1; lx += 2) {
+      for (let lz = -1; lz <= 1; lz += 2) {
+        const lugWheel2 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 12), new THREE.MeshStandardMaterial({color:'#222', roughness:0.6}));
+        lugWheel2.rotation.z = Math.PI / 2;
+        lugWheel2.position.set(lx * 0.14, 0.04, lz * 0.08); luggage2.add(lugWheel2);
+      }
+    }
+    luggage2.position.set(-W/2 + 1.4, 0.02, D1 + D2 + 1.1);  // 第三个房间，第一个行李箱右侧
+    luggage2.rotation.y = Math.PI / 2;
+    add(R, luggage2);
+
+    // ===== 第三个行李箱 (大号，放在旁边) =====
+    const luggage3 = new THREE.Group();
+    const lugBody3 = box(0.55, 0.75, 0.32, new THREE.MeshStandardMaterial({color:'#4a4a4a', roughness:0.4}));
+    lugBody3.position.y = 0.4; luggage3.add(lugBody3);
+    const lugTop3 = box(0.55, 0.08, 0.32, new THREE.MeshStandardMaterial({color:'#3a3a3a', roughness:0.4}));
+    lugTop3.position.y = 0.79; luggage3.add(lugTop3);
+    const lugHandle3 = box(0.05, 0.28, 0.05, new THREE.MeshStandardMaterial({color:'#555', roughness:0.3}));
+    lugHandle3.position.set(0, 0.92, 0.14); luggage3.add(lugHandle3);
+    const lugHandleBar3 = box(0.3, 0.04, 0.04, new THREE.MeshStandardMaterial({color:'#444', roughness:0.3}));
+    lugHandleBar3.position.set(0, 1.08, 0.14); luggage3.add(lugHandleBar3);
+    const lugStripe3 = box(0.56, 0.1, 0.01, new THREE.MeshStandardMaterial({color:'#87ceeb', roughness:0.5}));
+    lugStripe3.position.set(0, 0.43, 0.165); luggage3.add(lugStripe3);
+    for (let lx = -1; lx <= 1; lx += 2) {
+      for (let lz = -1; lz <= 1; lz += 2) {
+        const lugWheel3 = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 12), new THREE.MeshStandardMaterial({color:'#222', roughness:0.6}));
+        lugWheel3.rotation.z = Math.PI / 2;
+        lugWheel3.position.set(lx * 0.22, 0.05, lz * 0.12); luggage3.add(lugWheel3);
+      }
+    }
+    luggage3.position.set(-W/2 + 2.2, 0.02, D1 + D2 + 1);  // 第三个房间，第二个行李箱右侧
+    luggage3.rotation.y = Math.PI / 2;
+    add(R, luggage3);
+
+    // ===== 体育用具备品架 (进门后左侧，不靠墙) =====
+    const sportRack = new THREE.Group();
+    const rackMat = new THREE.MeshStandardMaterial({color:'#666', roughness:0.4, metalness:0.6});
+    const rackWood = new THREE.MeshStandardMaterial({color:'#8b6914', roughness:0.5});
+    for (let ri = -1; ri <= 1; ri += 2) {
+      const rackPost = box(0.04, 1.2, 0.04, rackMat);
+      rackPost.position.set(ri * 0.35, 0.6, 0); sportRack.add(rackPost);
+    }
+    for (let rh = 0; rh < 3; rh++) {
+      const rackShelf = box(0.8, 0.03, 0.25, rackWood);
+      rackShelf.position.y = 0.25 + rh * 0.4; sportRack.add(rackShelf);
+    }
+    sportRack.position.set(-3, 0.02, D1 + D2 + 1.5);  // 进门左侧，不靠墙
+    sportRack.rotation.y = -Math.PI / 2;
+    add(R, sportRack);
+
+    // 篮球 (躺在地上，靠近货架)
+    const uniBasketball = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16), new THREE.MeshStandardMaterial({color:'#e85d04', roughness:0.6}));
+    uniBasketball.position.set(-2.5, 0.18, D1 + D2 + 2);
+    uniBasketball.rotation.x = 0.3;
+    add(R, uniBasketball);
+
+    // 足球 (躺在地上，靠近货架)
+    const uniFootball = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16), new THREE.MeshStandardMaterial({color:'#f5f5f5', roughness:0.5}));
+    uniFootball.position.set(-3.5, 0.15, D1 + D2 + 2);
+    uniFootball.rotation.set(0.2, 0, 0.4);
+    add(R, uniFootball);
+
+    // 乒乓球拍 (挂在架子上)
+    const pingPongPaddle = new THREE.Group();
+    const paddleHandle = box(0.03, 0.15, 0.02, new THREE.MeshStandardMaterial({color:'#c4883c', roughness:0.4}));
+    paddleHandle.position.y = -0.05; pingPongPaddle.add(paddleHandle);
+    const paddleBlade = box(0.15, 0.17, 0.005, new THREE.MeshStandardMaterial({color:'#ff6b6b', roughness:0.5}));
+    paddleBlade.position.y = 0.04; pingPongPaddle.add(paddleBlade);
+    pingPongPaddle.position.set(-3.2, 1.1, D1 + D2 + 1.7);
+    pingPongPaddle.rotation.y = Math.PI / 2;
+    add(R, pingPongPaddle);
 
     // ===== 泡面杯+零食堆 =====
     const snackGrp = new THREE.Group();
