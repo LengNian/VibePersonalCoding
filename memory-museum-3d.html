@@ -669,7 +669,7 @@
   wall('corridor', 0, CORRIDOR_LENGTH, CORRIDOR_WIDTH + 0.6, 4.5, 0.3, wallMat);            // 前墙(终点)
 
   // 天花板
-  const ceilMat = new THREE.MeshStandardMaterial({ color: '#3a3530', roughness: 0.9 });
+  const ceilMat = new THREE.MeshStandardMaterial({ color: '#f5f0fa', roughness: 0.9 });
   const ceiling = box(CORRIDOR_WIDTH + 0.4, 0.15, CORRIDOR_LENGTH, ceilMat);
   ceiling.position.set(0, 4.5, CORRIDOR_LENGTH / 2);
   add('corridor', ceiling);
@@ -756,7 +756,7 @@
 
   createDoor('corridor', -CORRIDOR_WIDTH / 2 + 0.05, 4.5, Math.PI / 2, '过去', 'past');
   createDoor('corridor', CORRIDOR_WIDTH / 2 - 0.05, 7.5, -Math.PI / 2, '现在', 'present');
-  createDoor('corridor', -CORRIDOR_WIDTH / 2 + 0.05, 10.5, Math.PI / 2, '未来', 'future');
+  createDoor('corridor', -CORRIDOR_WIDTH / 2 + 0.35, 10.5, Math.PI / 2, '未来', 'future');
 
   // ---- 馆长之门 (走廊起点) ----
   createDoor('corridor', 0, 0.3, 0, '馆长', 'curator');
@@ -2666,139 +2666,765 @@
   })();
 
   // ============================================
-  //  未来之室
+  //  未来之室 — 露天阳台 → 云端卧室
+  //  入口位于 z≈0，面朝 -Z（阳台 / 城市夜景方向）
+  //  阳台在 -Z 侧，穿过智能门进入 +Z 侧的卧室
   // ============================================
   (function() {
     const R = 'future';
-    const SIZE = 8;
-    add(R, box(SIZE, 0.15, SIZE, new THREE.MeshStandardMaterial({ color:'#2a2a3a', roughness:0.6 }))).position.set(0,-0.08,0);
+    const SIZE = 13; // 13x13：旷阔感更强
 
-    // 开放露台 — 只有栏杆、没有四面墙(用矮墙代替)
-    function railing(group, x, z, len) {
-      const rail = box(len, 0.08, 0.1, darkMetalMat);
-      rail.position.set(x, 1.1, z);
-      add(group, rail);
-      for (let px = -len/2 + 0.4; px < len/2; px += 0.8) {
-        const post = box(0.06, 1, 0.06, darkMetalMat);
-        post.position.set(x + px, 0.5, z);
-        add(group, post);
+    // ---- 共享纹理 ----
+    // 星空图
+    const starCanvas = document.createElement('canvas');
+    starCanvas.width = 512; starCanvas.height = 512;
+    const starCtx = starCanvas.getContext('2d');
+    starCtx.fillStyle = '#06061a'; starCtx.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 600; i++) {
+      const sx = Math.random() * 512, sy = Math.random() * 512;
+      const sr = 0.4 + Math.random() * 1.8;
+      starCtx.fillStyle = `rgba(255,255,255,${0.15 + Math.random() * 0.85})`;
+      starCtx.beginPath(); starCtx.arc(sx, sy, sr, 0, Math.PI * 2); starCtx.fill();
+    }
+    // 流星
+    for (let i = 0; i < 3; i++) {
+      const mx = Math.random() * 400 + 50, my = Math.random() * 400;
+      starCtx.strokeStyle = 'rgba(200,220,255,0.6)'; starCtx.lineWidth = 1.5;
+      starCtx.beginPath(); starCtx.moveTo(mx, my); starCtx.lineTo(mx + 20, my - 3); starCtx.stroke();
+    }
+    const starTex = new THREE.CanvasTexture(starCanvas);
+    starTex.colorSpace = THREE.SRGBColorSpace;
+
+    // 城市夜景背景图 —— 用作"阳台远眺"
+    const cityCanvas = document.createElement('canvas');
+    cityCanvas.width = 800; cityCanvas.height = 400;
+    const cityCtx = cityCanvas.getContext('2d');
+    const skyGrad = cityCtx.createLinearGradient(0, 0, 0, 400);
+    skyGrad.addColorStop(0, '#05051a'); skyGrad.addColorStop(0.55, '#0f1040'); skyGrad.addColorStop(1, '#1a1a4a');
+    cityCtx.fillStyle = skyGrad; cityCtx.fillRect(0, 0, 800, 400);
+    // 远处高楼
+    for (let i = 0; i < 30; i++) {
+      const cx = Math.random() * 800;
+      const ch = 80 + Math.random() * 200;
+      const cw = 18 + Math.random() * 35;
+      const bGrad = cityCtx.createLinearGradient(cx, 400, cx, 400 - ch);
+      bGrad.addColorStop(0, '#0a0a30'); bGrad.addColorStop(0.7, '#1a2a50'); bGrad.addColorStop(1, '#2a3a60');
+      cityCtx.fillStyle = bGrad; cityCtx.fillRect(cx, 400 - ch, cw, ch);
+      for (let j = 1; j < ch / 15; j++) {
+        if (Math.random() > 0.2) {
+          cityCtx.fillStyle = Math.random() > 0.5 ? '#ffe9a0' : '#a0d4ff';
+          cityCtx.fillRect(cx + 3, 400 - ch + j * 15, 5, 7);
+        }
       }
     }
-    // 三面栏柱
-    railing(R, SIZE/2, SIZE/2, SIZE);
-    railing(R, 0, SIZE, SIZE+0.3);
-    railing(R, -SIZE/2, SIZE/2, SIZE);
-    // 后墙(入口墙)
-    wall(R, 0, 0, SIZE+0.4, 3.5, 0.3, new THREE.MeshStandardMaterial({ color:'#3a3a4a', roughness:0.8 }));
-
-    // 黎明天空背景 (用大球体)
-    const skyGeo = new THREE.SphereGeometry(20, 32, 32);
-    const skyCanvas = document.createElement('canvas');
-    skyCanvas.width = 512; skyCanvas.height = 256;
-    const sctx2 = skyCanvas.getContext('2d');
-    const skyGrad = sctx2.createLinearGradient(0, 0, 0, 256);
-    skyGrad.addColorStop(0, '#0a0a2e');
-    skyGrad.addColorStop(0.35, '#1a1a4a');
-    skyGrad.addColorStop(0.6, '#2a3a5a');
-    skyGrad.addColorStop(0.75, '#4a3a3a');
-    skyGrad.addColorStop(0.9, '#6a4a3a');
-    skyGrad.addColorStop(1, '#8a6a4a');
-    sctx2.fillStyle = skyGrad;
-    sctx2.fillRect(0, 0, 512, 256);
-    // 星星
-    for (let i = 0; i < 80; i++) {
-      sctx2.fillStyle = `rgba(255,255,255,${0.4+Math.random()*0.6})`;
-      sctx2.beginPath();
-      sctx2.arc(Math.random()*512, Math.random()*120, 0.5+Math.random()*1.5, 0, Math.PI*2);
-      sctx2.fill();
+    // 近处高楼（更大 / 更亮）
+    for (let i = 0; i < 8; i++) {
+      const nx = i * 100 + Math.random() * 40;
+      const nh = 180 + Math.random() * 150;
+      const nw = 35 + Math.random() * 25;
+      const nGrad = cityCtx.createLinearGradient(nx, 400, nx, 400 - nh);
+      nGrad.addColorStop(0, '#12123a'); nGrad.addColorStop(0.6, '#2a3a60'); nGrad.addColorStop(1, '#4a5a90');
+      cityCtx.fillStyle = nGrad; cityCtx.fillRect(nx, 400 - nh, nw, nh);
+      for (let j = 1; j < nh / 12; j++) {
+        if (Math.random() > 0.15) {
+          cityCtx.fillStyle = Math.random() > 0.6 ? '#fff3c0' : '#90e0ff';
+          cityCtx.fillRect(nx + 4, 400 - nh + j * 12, 7, 9);
+        }
+      }
     }
-    const skyTex = new THREE.CanvasTexture(skyCanvas);
-    skyTex.colorSpace = THREE.SRGBColorSpace;
-    const sky = new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ map:skyTex, side:THREE.BackSide }));
-    sky.position.set(0, 5, SIZE/2);
-    sky.renderOrder = -1;
-    add(R, sky);
+    // 飞行器
+    for (let i = 0; i < 8; i++) {
+      const fx = Math.random() * 800, fy = 30 + Math.random() * 200;
+      cityCtx.fillStyle = '#00e5ff'; cityCtx.fillRect(fx, fy, 12, 3);
+      cityCtx.fillStyle = '#ff4081'; cityCtx.fillRect(fx + 2, fy - 1, 3, 4);
+    }
+    // 全息广告牌
+    cityCtx.fillStyle = '#ff00aa'; cityCtx.globalAlpha = 0.5;
+    cityCtx.fillRect(620, 45, 70, 30);
+    cityCtx.fillStyle = '#00ffff';
+    cityCtx.fillRect(100, 20, 85, 28);
+    cityCtx.globalAlpha = 1;
+    const cityTex = new THREE.CanvasTexture(cityCanvas);
+    cityTex.colorSpace = THREE.SRGBColorSpace;
 
-    // 环境光
-    const futAmb = new THREE.AmbientLight('#4a5a8a', 1.2);
-    add(R, futAmb);
-    const futDir = new THREE.DirectionalLight('#ffccaa', 1);
-    futDir.position.set(5, 3, SIZE);
-    add(R, futDir);
+    // ---- 地板 ----
+    const floorBase = box(SIZE, 0.12, SIZE, new THREE.MeshStandardMaterial({ color: '#d4a574', roughness: 0.55 }));
+    floorBase.position.set(0, -0.06, 0); add(R, floorBase);
 
-    // 基座 + 悬浮星图仪
-    const pedestal = box(0.4, 1.2, 0.4, new THREE.MeshStandardMaterial({ color:'#3a3a4a', roughness:0.3, metalness:0.6 }));
-    pedestal.position.set(0, 0.6, SIZE/2);
-    add(R, pedestal);
-
-    const starGlobe = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1), new THREE.MeshStandardMaterial({ color:'#c8e0ff', roughness:0.2, metalness:0.4, emissive:'#4466aa', emissiveIntensity:0.6, wireframe:true }));
-    starGlobe.position.set(0, 1.8, SIZE/2);
-    starGlobe.userData.starGlobe = true;
-    add(R, starGlobe);
-
-    // 外层光晕
-    const globeGlow = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16), new THREE.MeshBasicMaterial({ color:'#6688cc', transparent:true, opacity:0.15 }));
-    globeGlow.position.copy(starGlobe.position);
-    add(R, globeGlow);
-    globeGlow.userData.starGlobe = true;
-
-    // 愿景板
-    const visionGeo = new THREE.PlaneGeometry(2.5, 1.8);
-    const vCanvas = document.createElement('canvas');
-    vCanvas.width = 500; vCanvas.height = 360;
-    const vctx = vCanvas.getContext('2d');
-    vctx.fillStyle = '#2a2a3a';
-    vctx.fillRect(0,0,500,360);
-    const blocks = [
-      { color:'#ff6b6b', x:20, y:20, w:150, h:100 },
-      { color:'#4ecdc4', x:180, y:20, w:140, h:60 },
-      { color:'#ffe66d', x:330, y:20, w:150, h:80 },
-      { color:'#a8e6cf', x:20, y:130, w:200, h:100 },
-      { color:'#d4a5a5', x:230, y:100, w:250, h:70 },
-      { color:'#ff8b94', x:20, y:250, w:180, h:90 },
-      { color:'#b8a9c9', x:210, y:200, w:270, h:140 },
+    // ---- 1. 阳台区域 (z: -SIZE/2 ~ 0) —— 顶楼天台 ----
+    // 城市夜空背景
+    const cityNightCanvas = document.createElement('canvas');
+    cityNightCanvas.width = 1024; cityNightCanvas.height = 512;
+    const cityNightCtx = cityNightCanvas.getContext('2d');
+    const cityGrad = cityNightCtx.createLinearGradient(0, 0, 0, 512);
+    cityGrad.addColorStop(0, '#0a0a1a');
+    cityGrad.addColorStop(0.4, '#1a1a3a');
+    cityGrad.addColorStop(0.7, '#2a2a4a');
+    cityGrad.addColorStop(1, '#1a1a2a');
+    cityNightCtx.fillStyle = cityGrad;
+    cityNightCtx.fillRect(0, 0, 1024, 512);
+    
+    // 绘制远处城市建筑剪影
+    cityNightCtx.fillStyle = '#0a0a15';
+    const buildings = [
+      { x: 0, w: 60, h: 180 },
+      { x: 70, w: 40, h: 220 },
+      { x: 120, w: 80, h: 280 },
+      { x: 210, w: 50, h: 200 },
+      { x: 270, w: 90, h: 320 },
+      { x: 370, w: 45, h: 190 },
+      { x: 425, w: 70, h: 260 },
+      { x: 505, w: 55, h: 210 },
+      { x: 570, w: 85, h: 300 },
+      { x: 665, w: 40, h: 180 },
+      { x: 715, w: 75, h: 250 },
+      { x: 800, w: 60, h: 230 },
+      { x: 870, w: 90, h: 290 },
+      { x: 970, w: 54, h: 200 },
     ];
-    blocks.forEach(b => {
-      vctx.fillStyle = b.color;
-      vctx.fillRect(b.x, b.y, b.w, b.h);
-      vctx.strokeStyle = 'rgba(255,255,255,0.1)';
-      vctx.strokeRect(b.x, b.y, b.w, b.h);
+    buildings.forEach(b => {
+      cityNightCtx.fillRect(b.x, 512 - b.h, b.w, b.h);
     });
-    vctx.fillStyle = 'rgba(255,255,255,0.6)';
-    vctx.font = '24px "Noto Serif SC", serif';
-    vctx.fillText('愿 景 板', 180, 340);
-    const vTex = new THREE.CanvasTexture(vCanvas);
-    vTex.colorSpace = THREE.SRGBColorSpace;
-    const visionBoard = new THREE.Mesh(visionGeo, new THREE.MeshBasicMaterial({ map:vTex }));
-    visionBoard.position.set(2, 1.8, SIZE - 0.5);
-    add(R, visionBoard);
-
-    // 盆栽
-    for (let pi = 0; pi < 3; pi++) {
-      const potX = -2 + pi * 2;
-      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.18, 0.3, 12), new THREE.MeshStandardMaterial({ color:'#c47f5a', roughness:0.5 }));
-      pot.position.set(potX, 0.3, SIZE - 0.5);
-      add(R, pot);
-      const plant = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.5, 8), new THREE.MeshStandardMaterial({ color:'#3a6b3a', roughness:0.7 }));
-      plant.position.set(potX, 0.65, SIZE - 0.5);
-      plant.userData.plant = true;
-      add(R, plant);
+    
+    // 建筑窗户灯光
+    for (let i = 0; i < 120; i++) {
+      const wx = Math.random() * 1024;
+      const wy = 200 + Math.random() * 300;
+      const ws = 1 + Math.random() * 2;
+      const windowColors = ['#ffdd88', '#ffffcc', '#88ddff', '#ffcc88'];
+      cityNightCtx.fillStyle = windowColors[Math.floor(Math.random() * windowColors.length)];
+      cityNightCtx.globalAlpha = 0.3 + Math.random() * 0.7;
+      cityNightCtx.fillRect(wx, wy, ws, ws * 2);
     }
+    cityNightCtx.globalAlpha = 1;
+    
+    const cityNightTex = new THREE.CanvasTexture(cityNightCanvas);
+    cityNightTex.colorSpace = THREE.SRGBColorSpace;
+    
+    // 城市背景球
+    const futureCitySkyGeo = new THREE.SphereGeometry(SIZE * 2.5, 32, 32);
+    const futureCitySkyMat = new THREE.MeshBasicMaterial({ 
+      map: cityNightTex,
+      side: THREE.BackSide,
+      transparent: true,
+      opacity: 0.9
+    });
+    const futureCitySky = new THREE.Mesh(futureCitySkyGeo, futureCitySkyMat);
+    futureCitySky.position.set(0, 2, -SIZE * 0.3);
+    add(R, futureCitySky);
+    
+    // 顶楼地板 - 深灰色水泥质感
+    const futureRooftopMat = new THREE.MeshStandardMaterial({ color: '#3a3a3a', roughness: 0.9 });
+    const futureRooftopFloor = new THREE.Mesh(new THREE.PlaneGeometry(SIZE, SIZE * 0.52), futureRooftopMat);
+    futureRooftopFloor.position.set(0, 0.01, -SIZE * 0.24); futureRooftopFloor.rotation.x = -Math.PI / 2; add(R, futureRooftopFloor);
+    
+    // 移除了顶楼设备，保持阳台整洁
 
-    // 交互点
-    const starInteract = new THREE.Mesh(new THREE.SphereGeometry(0.7), new THREE.MeshBasicMaterial({ visible:false }));
-    starInteract.position.copy(starGlobe.position);
-    addInteractable(R, starInteract, {
-      type:'exhibit', title:'星 图 仪',
-      content:'<p>这个旋转的星图里，每一颗星代表一个未来的目标。</p><p>有些清晰明亮——比如完成一个自己的开源项目；有些还很模糊——比如找到那个愿意一起看星星的人。</p><p>但没关系。星图总是在扩展的，就像可能性一样。</p>'
+    // 全景围栏 - 透明玻璃质感
+    const fenceHeight = 1.2;
+    const fenceThickness = 0.08;
+    const fenceMat = new THREE.MeshPhysicalMaterial({ 
+      color: '#e0f4ff', 
+      transparent: true, 
+      opacity: 0.4, 
+      roughness: 0.1, 
+      metalness: 0.3,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.2
+    });
+    // 底部金属边框
+    const fenceFrameMat = new THREE.MeshStandardMaterial({ color: '#88aacc', roughness: 0.2, metalness: 0.8 });
+    
+    // 远侧围栏
+    const fenceBack = new THREE.Mesh(new THREE.BoxGeometry(SIZE, fenceHeight, fenceThickness), fenceMat);
+    fenceBack.position.set(0, fenceHeight / 2, -SIZE / 2 + 0.12); add(R, fenceBack);
+    // 底部边框
+    const fenceBackFrame = new THREE.Mesh(new THREE.BoxGeometry(SIZE, 0.06, 0.12), fenceFrameMat);
+    fenceBackFrame.position.set(0, 0.03, -SIZE / 2 + 0.12); add(R, fenceBackFrame);
+    
+    // 左侧围栏
+    const fenceLeft = new THREE.Mesh(new THREE.BoxGeometry(fenceThickness, fenceHeight, SIZE * 0.5), fenceMat);
+    fenceLeft.position.set(-SIZE / 2 + 0.12, fenceHeight / 2, -SIZE * 0.24); add(R, fenceLeft);
+    const fenceLeftFrame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, SIZE * 0.5), fenceFrameMat);
+    fenceLeftFrame.position.set(-SIZE / 2 + 0.12, 0.03, -SIZE * 0.24); add(R, fenceLeftFrame);
+    
+    // 右侧围栏
+    const fenceRight = new THREE.Mesh(new THREE.BoxGeometry(fenceThickness, fenceHeight, SIZE * 0.5), fenceMat);
+    fenceRight.position.set(SIZE / 2 - 0.12, fenceHeight / 2, -SIZE * 0.24); add(R, fenceRight);
+    const fenceRightFrame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, SIZE * 0.5), fenceFrameMat);
+    fenceRightFrame.position.set(SIZE / 2 - 0.12, 0.03, -SIZE * 0.24); add(R, fenceRightFrame);
+
+    // ---- 2. 时光球 (阳台中央偏左) ----
+    const timeSphereGroup = new THREE.Group();
+    const sphereGeo = new THREE.SphereGeometry(0.55, 48, 48);
+    const sphereCanvas = document.createElement('canvas');
+    sphereCanvas.width = 256; sphereCanvas.height = 256;
+    const sphereCtx = sphereCanvas.getContext('2d');
+    for (let i = 0; i < 60; i++) {
+      const g = sphereCtx.createRadialGradient(Math.random() * 256, Math.random() * 256, 0, Math.random() * 256, Math.random() * 256, 130);
+      g.addColorStop(0, ['#ff6b9d', '#c084fc', '#60a5fa', '#22d3ee', '#fbbf24'][Math.floor(Math.random() * 5)]);
+      g.addColorStop(1, 'transparent');
+      sphereCtx.fillStyle = g; sphereCtx.fillRect(0, 0, 256, 256);
+    }
+    const sphereTex = new THREE.CanvasTexture(sphereCanvas); sphereTex.colorSpace = THREE.SRGBColorSpace;
+    const timeSphere = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({ map: sphereTex, transparent: true, opacity: 0.9 }));
+    const glowOuter = new THREE.Mesh(new THREE.SphereGeometry(0.62, 32, 32), new THREE.MeshBasicMaterial({ color: '#a0f0ff', transparent: true, opacity: 0.2 }));
+    const glowInner = new THREE.Mesh(new THREE.SphereGeometry(0.58, 32, 32), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.15 }));
+    timeSphereGroup.add(glowOuter); timeSphereGroup.add(glowInner); timeSphereGroup.add(timeSphere);
+    timeSphereGroup.userData.starGlobe = true;
+    // 底座
+    const pedestalTop = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 0.08, 32), new THREE.MeshStandardMaterial({ color: '#3a3a5a', roughness: 0.3, metalness: 0.7 }));
+    pedestalTop.position.y = -0.55; timeSphereGroup.add(pedestalTop);
+    const pedestalBody = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 0.7, 32), new THREE.MeshStandardMaterial({ color: '#2a2a4a', roughness: 0.3, metalness: 0.7 }));
+    pedestalBody.position.y = -0.94; timeSphereGroup.add(pedestalBody);
+    timeSphereGroup.position.set(-2.8, 1.6, -3.5); add(R, timeSphereGroup);
+
+    const timeSphereInteract = new THREE.Mesh(new THREE.SphereGeometry(0.9), new THREE.MeshBasicMaterial({ visible: false }));
+    timeSphereInteract.position.copy(timeSphereGroup.position);
+    addInteractable(R, timeSphereInteract, {
+      type: 'exhibit', title: '时 光 球',
+      content: '<p>这是一颗浓缩了时间的神秘球体，表面星云流转，如同时光的漩涡。</p><p>将手放上去，可以看见过去每一个闪光的瞬间，瞥见未来的自己站在某座城市的灯火中。</p><p>它提醒我们：过去值得珍藏，现在值得珍惜，未来值得期待。</p>'
     });
 
-    const visionInteract = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.8), new THREE.MeshBasicMaterial({ visible:false }));
-    visionInteract.position.copy(visionBoard.position);
-    addInteractable(R, visionInteract, {
-      type:'exhibit', title:'愿 景 板',
-      content:'<p>这是一块还在不断更新的拼贴板。上面挂着旅行目的地的明信片、想读的书单封面、技能树的分支图。</p><p>它提醒我：未来不是等来的，是一点一点拼出来的。</p>'
+    // ---- 3. 天文望远镜 (阳台右侧) ----
+    const telescopeGroup = new THREE.Group();
+    const tripodMat = new THREE.MeshStandardMaterial({ color: '#5a5a7a', roughness: 0.35, metalness: 0.7 });
+    for (let a = 0; a < 3; a++) {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.3, 8), tripodMat);
+      leg.position.set(Math.cos(a * Math.PI * 2 / 3) * 0.22, 0.65, Math.sin(a * Math.PI * 2 / 3) * 0.22);
+      leg.rotation.z = Math.cos(a * Math.PI * 2 / 3) * 0.35;
+      leg.rotation.x = -Math.sin(a * Math.PI * 2 / 3) * 0.35;
+      telescopeGroup.add(leg);
+    }
+    const hub = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), new THREE.MeshStandardMaterial({ color: '#7a7a9a', roughness: 0.2, metalness: 0.9 }));
+    hub.position.y = 1.28; telescopeGroup.add(hub);
+    const scopeMat = new THREE.MeshStandardMaterial({ color: '#c0c0d0', roughness: 0.15, metalness: 0.85 });
+    const scopeBody = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.8, 16), scopeMat);
+    scopeBody.position.set(0.9, 1.28, 0); scopeBody.rotation.z = -Math.PI / 2; telescopeGroup.add(scopeBody);
+    const scopeFront = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.08, 0.35, 16), scopeMat);
+    scopeFront.position.set(0, 1.28, 0); scopeFront.rotation.z = -Math.PI / 2; telescopeGroup.add(scopeFront);
+    const lensGlow = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.05, 16), new THREE.MeshBasicMaterial({ color: '#aaddff' }));
+    lensGlow.position.set(-0.18, 1.28, 0); lensGlow.rotation.z = -Math.PI / 2; telescopeGroup.add(lensGlow);
+    const holoScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.25), new THREE.MeshBasicMaterial({ color: '#00ffff', transparent: true, opacity: 0.7 }));
+    holoScreen.position.set(0.6, 1.55, 0.18); holoScreen.rotation.y = -0.4; telescopeGroup.add(holoScreen);
+    telescopeGroup.position.set(3.5, 0, -3.8); telescopeGroup.rotation.y = Math.PI / 5; add(R, telescopeGroup);
+
+    const telescopeInteract = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.8, 1), new THREE.MeshBasicMaterial({ visible: false }));
+    telescopeInteract.position.set(3.5, 0.9, -3.8);
+    addInteractable(R, telescopeInteract, {
+      type: 'exhibit', title: '天文望远镜',
+      content: '<p>一台顶楼观景望远镜，配备高清夜视镜头。</p><p>透过目镜，可以俯瞰整座城市的璀璨灯火，看飞行汽车在楼宇间穿梭，感受这座城市永不熄灭的活力。</p><p>城市从不睡眠，就像梦想从不休息。</p>'
     });
+
+    // ---- 4. 智能门 (z≈0) ----
+    // 玻璃门框 - 银色金属
+    const doorFrameMat = new THREE.MeshStandardMaterial({ color: '#aabbcc', roughness: 0.2, metalness: 0.8 });
+    
+    // 门框顶部
+    const doorFrameTop = box(4.4, 0.15, 0.15, doorFrameMat);
+    doorFrameTop.position.set(0, 3.65, 0); add(R, doorFrameTop);
+    
+    // 门框左侧
+    const doorFrameLeft = box(0.15, 3.5, 0.12, doorFrameMat);
+    doorFrameLeft.position.set(-2.2, 1.75, 0); add(R, doorFrameLeft);
+    
+    // 门框右侧
+    const doorFrameRight = box(0.15, 3.5, 0.12, doorFrameMat);
+    doorFrameRight.position.set(2.2, 1.75, 0); add(R, doorFrameRight);
+    
+    // 玻璃墙 - 透明隔断（左侧部分）
+    const glassWallMat = new THREE.MeshPhysicalMaterial({ 
+      color: '#aaddff', 
+      transparent: true, 
+      opacity: 0.25, 
+      roughness: 0.05, 
+      metalness: 0.1,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.1,
+      transmission: 0.9
+    });
+    
+    // 左侧玻璃墙
+    const glassWallLeft = box(3.9, 3.5, 0.08, glassWallMat);
+    glassWallLeft.position.set(-3.75, 1.75, 0); add(R, glassWallLeft);
+    
+    // 右侧玻璃墙
+    const glassWallRight = box(3.9, 3.5, 0.08, glassWallMat);
+    glassWallRight.position.set(3.75, 1.75, 0); add(R, glassWallRight);
+    
+    // 玻璃门（中间开口处）- 可推开的感觉
+    const doorGlassMat = new THREE.MeshPhysicalMaterial({ 
+      color: '#ffffff', 
+      transparent: true, 
+      opacity: 0.15, 
+      roughness: 0.02, 
+      metalness: 0.0,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      transmission: 0.95
+    });
+    
+    // 玻璃门左侧
+    const doorGlassLeft = box(1.8, 3.2, 0.06, doorGlassMat);
+    doorGlassLeft.position.set(-1.15, 1.6, 0); 
+    doorGlassLeft.userData.isDoorGlass = true;
+    doorGlassLeft.userData.isLeftDoor = true;
+    doorGlassLeft.userData.closedZ = 0;
+    doorGlassLeft.userData.openZ = -1.2;
+    add(R, doorGlassLeft);
+    
+    // 玻璃门右侧
+    const doorGlassRight = box(1.8, 3.2, 0.06, doorGlassMat);
+    doorGlassRight.position.set(1.15, 1.6, 0); 
+    doorGlassRight.userData.isDoorGlass = true;
+    doorGlassRight.userData.isLeftDoor = false;
+    doorGlassRight.userData.closedZ = 0;
+    doorGlassRight.userData.openZ = 1.2;
+    add(R, doorGlassRight);
+    
+    // 门上横梁装饰
+    const doorBeamMat = new THREE.MeshStandardMaterial({ color: '#88aabb', roughness: 0.3, metalness: 0.6 });
+    const doorBeam = box(4.4, 0.08, 0.1, doorBeamMat);
+    doorBeam.position.set(0, 3.45, 0); add(R, doorBeam);
+    
+    // 门口发光门帘效果 - 温暖的金色
+    const doorGlowMat = new THREE.MeshBasicMaterial({ color: '#ffcc88', transparent: true, opacity: 0.4 });
+    const doorGlowL = box(0.04, 3.5, 0.04, doorGlowMat);
+    doorGlowL.position.set(-2.2, 1.75, 0.05); add(R, doorGlowL);
+    const doorGlowR = box(0.04, 3.5, 0.04, doorGlowMat);
+    doorGlowR.position.set(2.2, 1.75, 0.05); add(R, doorGlowR);
+    const doorGlowT = box(4.4, 0.04, 0.04, doorGlowMat);
+    doorGlowT.position.set(0, 3.5, 0.05); add(R, doorGlowT);
+
+    // 全息栏杆碰撞体
+    // 远侧栏杆（z方向）
+    addCollider(R, 0, -SIZE / 2 + 0.25, SIZE * 0.88, 0.1);
+    // 左侧栏杆（x方向，y轴纵向）
+    addCollider(R, -SIZE / 2 + 0.25, -SIZE * 0.26, 0.1, SIZE * 0.48);
+    // 右侧栏杆（x方向）
+    addCollider(R, SIZE / 2 - 0.25, -SIZE * 0.26, 0.1, SIZE * 0.48);
+
+    // ---- 5. 卧室区域 (z: 0.5 ~ SIZE/2) ----
+    // 温暖木地板
+    const bedFloorMat = new THREE.MeshStandardMaterial({ color: '#d4a574', roughness: 0.5 });
+    const bedFloor = box(SIZE, 0.06, SIZE * 0.48, bedFloorMat);
+    bedFloor.position.set(0, 0.03, SIZE * 0.25); add(R, bedFloor);
+
+    // 悬浮床 (右侧，靠近墙壁，纵向)
+    const bedGroup = new THREE.Group();
+    const bedMat = new THREE.MeshStandardMaterial({ color: '#8b7355', roughness: 0.4 });
+    const mattress = box(2.5, 0.28, 2.2, bedMat);  // 更大，纵向
+    mattress.position.set(0, 0.17, 0); bedGroup.add(mattress);
+    const pillow = box(0.8, 0.15, 0.55, new THREE.MeshStandardMaterial({ color: '#fff5e6', roughness: 0.3 }));
+    pillow.position.set(-0.85, 0.32, -0.75); bedGroup.add(pillow);  // 调整到床头
+    const pillow2 = box(0.8, 0.15, 0.55, new THREE.MeshStandardMaterial({ color: '#fff0e0', roughness: 0.3 }));
+    pillow2.position.set(-0.85, 0.32, 0.75); bedGroup.add(pillow2);  // 调整到床头
+    const headboard = box(0.15, 0.65, 2.5, new THREE.MeshStandardMaterial({ color: '#5c4033' }));  // 床头靠墙
+    headboard.position.set(-1.2, 0.45, 0); bedGroup.add(headboard);  // 位置调整
+    // 悬浮光晕 - 温暖的橙色
+    const bedGlow = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.06, 2.5), new THREE.MeshBasicMaterial({ color: '#ffaa55', transparent: true, opacity: 0.25 }));
+    bedGlow.position.set(0, -0.08, 0); bedGroup.add(bedGlow);
+    bedGroup.position.set(-4.3, 0.35, 4.8);  // 紧挨着婴儿床右侧
+    bedGroup.rotation.y = Math.PI / 2;  // 旋转90度
+    add(R, bedGroup);
+
+    const bedInteract = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.2, 2.5), new THREE.MeshBasicMaterial({ visible: false }));
+    bedInteract.position.set(-3.4, 0.7, 4.5);
+    addInteractable(R, bedInteract, {
+      type: 'exhibit', title: '悬浮床',
+      content: '<p>在云端入睡是什么感觉？这张床给了你答案。</p><p>反重力悬浮技术让它轻轻漂浮在地板上方几厘米处，智能温控表面会根据体温调节到最舒适的温度。</p><p>躺在床上，透过落地窗就可以俯瞰整座城市的璀璨夜景。</p>'
+    });
+
+    // AI管家 (右后角)
+    const aiGroup = new THREE.Group();
+    const aiBase = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.1, 32), new THREE.MeshStandardMaterial({ color: '#e8c8a8', roughness: 0.15, metalness: 0.9 }));
+    aiBase.position.y = 0.05; aiGroup.add(aiBase);
+    const aiRing = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.02, 8, 32), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.7 }));
+    aiRing.position.y = 0.5; aiRing.rotation.x = Math.PI / 2; aiGroup.add(aiRing);
+    const aiRing2 = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.02, 8, 32), new THREE.MeshBasicMaterial({ color: '#ffcc88', transparent: true, opacity: 0.5 }));
+    aiRing2.position.y = 0.55; aiRing2.rotation.x = Math.PI / 2.5; aiGroup.add(aiRing2);
+    // 全息头像投影
+    const avatarCanvas = document.createElement('canvas');
+    avatarCanvas.width = 100; avatarCanvas.height = 150;
+    const aCtx = avatarCanvas.getContext('2d');
+    aCtx.fillStyle = '#ffcc88'; aCtx.globalAlpha = 0.3; aCtx.fillRect(20, 10, 60, 130); aCtx.globalAlpha = 1;
+    aCtx.fillStyle = '#ffffff'; aCtx.beginPath(); aCtx.arc(50, 50, 22, 0, Math.PI * 2); aCtx.fill();
+    aCtx.fillStyle = '#ffcc88'; aCtx.beginPath(); aCtx.arc(50, 50, 22, 0, Math.PI * 2); aCtx.stroke();
+    const avatarTex = new THREE.CanvasTexture(avatarCanvas); avatarTex.colorSpace = THREE.SRGBColorSpace;
+    const avatar = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.7), new THREE.MeshBasicMaterial({ map: avatarTex, transparent: true, opacity: 0.8 }));
+    avatar.position.set(0, 0.65, 0.4); aiGroup.add(avatar);
+    aiGroup.position.set(5.8, 0, 0.5); add(R, aiGroup);
+
+    const aiInteract = new THREE.Mesh(new THREE.SphereGeometry(0.6), new THREE.MeshBasicMaterial({ visible: false }));
+    aiInteract.position.set(5.8, 0.5, 0.5);
+    addInteractable(R, aiInteract, {
+      type: 'exhibit', title: 'AI 管家',
+      content: '<p>晚上好。我是你的私人 AI 管家 Lumi。</p><p>我已经帮你把卧室温度调到 22°C，床铺已经铺好，明天的日程也同步到你的神经终端了。</p><p>晚安，做个好梦。</p>'
+    });
+
+    // 量子衣橱 (右后角)
+    const wardrobeGroup = new THREE.Group();
+    const wMat = new THREE.MeshStandardMaterial({ color: '#c9a87c', roughness: 0.35, metalness: 0.25 });
+    const wardrobe = box(1.4, 2.2, 0.6, wMat);
+    wardrobe.position.set(0, 1.1, 0); wardrobeGroup.add(wardrobe);
+    const wStripL = box(0.03, 2.2, 0.02, new THREE.MeshBasicMaterial({ color: '#ffaa66', transparent: true, opacity: 0.6 }));
+    wStripL.position.set(-0.7, 1.1, 0.31); wardrobeGroup.add(wStripL);
+    const wStripR = box(0.03, 2.2, 0.02, new THREE.MeshBasicMaterial({ color: '#ffaa66', transparent: true, opacity: 0.6 }));
+    wStripR.position.set(0.7, 1.1, 0.31); wardrobeGroup.add(wStripR);
+    // 正面小屏
+    const wScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.2), new THREE.MeshBasicMaterial({ color: '#ffeedd', transparent: true, opacity: 0.8 }));
+    wScreen.position.set(0, 1.1, 0.32); wardrobeGroup.add(wScreen);
+    wardrobeGroup.position.set(5.8, 0, 5); wardrobeGroup.rotation.y = Math.PI / 2; add(R, wardrobeGroup);
+
+    const wardrobeInteract = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.4, 0.8), new THREE.MeshBasicMaterial({ visible: false }));
+    wardrobeInteract.position.set(5.0, 1.2, 5);
+    addInteractable(R, wardrobeInteract, {
+      type: 'exhibit', title: '量子衣橱',
+      content: '<p>这些衣服并不真的挂在里面——它们存储在量子态中。</p><p>只需在镜面前挥一下手，就可以浏览整个虚拟衣橱，全息试穿，一键切换造型。</p><p>据说未来的时尚，是每天穿一种情绪。</p>'
+    });
+
+    // 婴儿床 (双人床左侧，纵向，同样长度2.5)
+    const babyBedGroup = new THREE.Group();
+    const babyBedMat = new THREE.MeshStandardMaterial({ color: '#e8d0b8', roughness: 0.4 });
+    const babyMattress = box(0.9, 0.15, 2.5, babyBedMat); // 和双人床一样长
+    babyMattress.position.set(0, 0.12, 0); babyBedGroup.add(babyMattress);
+    // 婴儿床栏杆
+    const railMat = new THREE.MeshStandardMaterial({ color: '#d4c4a8', roughness: 0.5 });
+    const railFront = box(0.9, 0.5, 0.05, railMat);
+    railFront.position.set(0, 0.4, 1.25); babyBedGroup.add(railFront);
+    const railBack = box(0.9, 0.5, 0.05, railMat);
+    railBack.position.set(0, 0.4, -1.25); babyBedGroup.add(railBack);
+    const railLeft = box(0.05, 0.5, 2.5, railMat);
+    railLeft.position.set(-0.45, 0.4, 0); babyBedGroup.add(railLeft);
+    const railRight = box(0.05, 0.5, 2.5, railMat);
+    railRight.position.set(0.45, 0.4, 0); babyBedGroup.add(railRight);
+    // 婴儿床顶部栏杆
+    const topRailMat = new THREE.MeshStandardMaterial({ color: '#c4b498', roughness: 0.6 });
+    const topRailL = box(0.05, 0.08, 2.5, topRailMat);
+    topRailL.position.set(-0.45, 0.7, 0); babyBedGroup.add(topRailL);
+    const topRailR = box(0.05, 0.08, 2.5, topRailMat);
+    topRailR.position.set(0.45, 0.7, 0); babyBedGroup.add(topRailR);
+    // 婴儿床腿
+    const legMat = new THREE.MeshStandardMaterial({ color: '#a89880', roughness: 0.5 });
+    const legPositions = [[-0.4, -1.1], [-0.4, 1.1], [0.4, -1.1], [0.4, 1.1]];
+    legPositions.forEach(pos => {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.15, 8), legMat);
+      leg.position.set(pos[0], 0.075, pos[1]); babyBedGroup.add(leg);
+    });
+    babyBedGroup.position.set(-5.95, 0, 4.8); // 紧贴左墙，紧挨着双人床，长边与双人床平行
+    babyBedGroup.rotation.y = 0; // 不旋转，长边与双人床平行
+    add(R, babyBedGroup);
+
+    // 婴儿玩耍区 (红色方框位置)
+    const playAreaGroup = new THREE.Group();
+    
+    // 游戏垫
+    const playMat = box(1.8, 0.03, 1.8, new THREE.MeshStandardMaterial({ color: '#ffe4e1', roughness: 0.4 }));
+    playMat.position.set(0, 0.015, 0); playAreaGroup.add(playMat);
+    playAreaGroup.position.set(-2, 0, 4.5);  // 移动到双人床和沙发之间的位置
+    
+    // 积木玩具
+    const blockColors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#f38181'];
+    const blockPositions = [[-0.5, 0.08, -0.5], [0, 0.08, -0.3], [0.3, 0.08, -0.6], [-0.2, 0.16, -0.5], [0.1, 0.16, -0.3]];
+    blockPositions.forEach((pos, i) => {
+      const block = box(0.15, 0.15, 0.15, new THREE.MeshStandardMaterial({ color: blockColors[i % blockColors.length], roughness: 0.3 }));
+      block.position.set(pos[0], pos[1], pos[2]); playAreaGroup.add(block);
+    });
+    
+    // 毛绒小熊
+    const bearBody = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), new THREE.MeshStandardMaterial({ color: '#c4a484', roughness: 0.4 }));
+    bearBody.position.set(0.5, 0.15, 0.4); playAreaGroup.add(bearBody);
+    const bearHead = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), new THREE.MeshStandardMaterial({ color: '#c4a484', roughness: 0.4 }));
+    bearHead.position.set(0.5, 0.32, 0.4); playAreaGroup.add(bearHead);
+    const bearEarL = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 8), new THREE.MeshStandardMaterial({ color: '#8b7355', roughness: 0.4 }));
+    bearEarL.position.set(0.45, 0.38, 0.42); playAreaGroup.add(bearEarL);
+    const bearEarR = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 8), new THREE.MeshStandardMaterial({ color: '#8b7355', roughness: 0.4 }));
+    bearEarR.position.set(0.55, 0.38, 0.42); playAreaGroup.add(bearEarR);
+    
+    // 彩色摇铃
+    const rattleHandle = box(0.03, 0.15, 0.03, new THREE.MeshStandardMaterial({ color: '#8b7355', roughness: 0.4 }));
+    rattleHandle.position.set(-0.4, 0.12, 0.3); playAreaGroup.add(rattleHandle);
+    const rattleRing = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.02, 8, 16), new THREE.MeshStandardMaterial({ color: '#ff6b6b', roughness: 0.3 }));
+    rattleRing.position.set(-0.4, 0.22, 0.3); playAreaGroup.add(rattleRing);
+    
+    // 小皮球
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), new THREE.MeshStandardMaterial({ color: '#4ecdc4', roughness: 0.3 }));
+    ball.position.set(-0.1, 0.1, -0.1); playAreaGroup.add(ball);
+    
+    add(R, playAreaGroup);
+
+    // 梳妆台 (靠近婴儿床的另一侧，右前角)
+    const dressingTableGroup = new THREE.Group();
+    const dtMat = new THREE.MeshStandardMaterial({ color: '#e8d8c8', roughness: 0.35 });
+    const dtTop = box(1.5, 0.08, 0.6, dtMat);
+    dtTop.position.set(0, 0.8, 0); dressingTableGroup.add(dtTop);
+    const dtLegs = box(0.06, 0.8, 0.06, new THREE.MeshStandardMaterial({ color: '#c4b4a4', roughness: 0.5 }));
+    const legPositions2 = [[-0.65, -0.2], [-0.65, 0.2], [0.65, -0.2], [0.65, 0.2]];
+    legPositions2.forEach(pos => {
+      const leg = box(0.06, 0.8, 0.06, new THREE.MeshStandardMaterial({ color: '#c4b4a4', roughness: 0.5 }));
+      leg.position.set(pos[0], 0.4, pos[1]); dressingTableGroup.add(leg);
+    });
+    // 镜子
+    const mirror = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.0), new THREE.MeshStandardMaterial({ color: '#e0f0ff', roughness: 0.1, metalness: 0.9 }));
+    mirror.position.set(0, 1.5, -0.28); dressingTableGroup.add(mirror);
+    // 镜子边框
+    const mirrorFrame = box(0.9, 1.1, 0.05, new THREE.MeshStandardMaterial({ color: '#d4c4b4', roughness: 0.4 }));
+    mirrorFrame.position.set(0, 1.5, -0.3); dressingTableGroup.add(mirrorFrame);
+    // 化妆品小物件
+    const bottleMat = new THREE.MeshStandardMaterial({ color: '#ff88aa', roughness: 0.3, transparent: true, opacity: 0.8 });
+    const bottle1 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.15, 8), bottleMat);
+    bottle1.position.set(-0.3, 0.92, 0); dressingTableGroup.add(bottle1);
+    const bottle2 = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.12, 8), new THREE.MeshStandardMaterial({ color: '#88aaff', roughness: 0.3, transparent: true, opacity: 0.8 }));
+    bottle2.position.set(-0.15, 0.9, 0.1); dressingTableGroup.add(bottle2);
+    const cream = box(0.1, 0.06, 0.08, new THREE.MeshStandardMaterial({ color: '#ffeecc', roughness: 0.4 }));
+    cream.position.set(0.2, 0.87, 0); dressingTableGroup.add(cream);
+    dressingTableGroup.position.set(5.8, 0, 2.5); dressingTableGroup.rotation.y = -Math.PI / 2; add(R, dressingTableGroup);
+
+    // 梳妆台前的椅子
+    const chairGroup = new THREE.Group();
+    const chairSeatMat = new THREE.MeshStandardMaterial({ color: '#d4c4b4', roughness: 0.4 });
+    const chairBackMat = new THREE.MeshStandardMaterial({ color: '#c4b4a4', roughness: 0.5 });
+    const chairLegMat = new THREE.MeshStandardMaterial({ color: '#8a7a6a', roughness: 0.5 });
+    // 椅座
+    const chairSeat = box(0.45, 0.06, 0.45, chairSeatMat);
+    chairSeat.position.set(0, 0.45, 0); chairGroup.add(chairSeat);
+    // 椅背
+    const chairBack = box(0.45, 0.5, 0.05, chairBackMat);
+    chairBack.position.set(0, 0.75, -0.2); chairGroup.add(chairBack);
+    // 椅子腿
+    const chairLegPositions = [[-0.18, -0.18], [-0.18, 0.18], [0.18, -0.18], [0.18, 0.18]];
+    chairLegPositions.forEach(pos => {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), chairLegMat);
+      leg.position.set(pos[0], 0.225, pos[1]); chairGroup.add(leg);
+    });
+    // 放在梳妆台前（梳妆台面朝左，所以椅子在右边一点，朝右）
+    chairGroup.position.set(4.6, 0, 2.5); 
+    chairGroup.rotation.y = Math.PI / 2;
+    add(R, chairGroup);
+
+    // 沙发 (靠近玻璃门区域，靠墙)
+    const sofaGroup = new THREE.Group();
+    const sofaMat = new THREE.MeshStandardMaterial({ color: '#8b7393', roughness: 0.3 });
+    const sofaBase = box(2.2, 0.6, 0.8, sofaMat);
+    sofaBase.position.set(0, 0.3, 0); sofaGroup.add(sofaBase);
+    const sofaBack = box(2.2, 0.8, 0.15, sofaMat);
+    sofaBack.position.set(0, 0.75, -0.4); sofaGroup.add(sofaBack);
+    const sofaArmL = box(0.15, 0.8, 0.8, sofaMat);
+    sofaArmL.position.set(-1.025, 0.55, 0); sofaGroup.add(sofaArmL);
+    const sofaArmR = box(0.15, 0.8, 0.8, sofaMat);
+    sofaArmR.position.set(1.025, 0.55, 0); sofaGroup.add(sofaArmR);
+    const sofaCushion1 = box(0.6, 0.12, 0.6, new THREE.MeshStandardMaterial({ color: '#9b83a3', roughness: 0.2 }));
+    sofaCushion1.position.set(-0.6, 0.4, -0.2); sofaGroup.add(sofaCushion1);
+    const sofaCushion2 = box(0.6, 0.12, 0.6, new THREE.MeshStandardMaterial({ color: '#9b83a3', roughness: 0.2 }));
+    sofaCushion2.position.set(0, 0.4, -0.2); sofaGroup.add(sofaCushion2);
+    const sofaCushion3 = box(0.6, 0.12, 0.6, new THREE.MeshStandardMaterial({ color: '#9b83a3', roughness: 0.2 }));
+    sofaCushion3.position.set(0.6, 0.4, -0.2); sofaGroup.add(sofaCushion3);
+    sofaGroup.position.set(0, 0, 5);  // 移到结婚照下方
+    sofaGroup.rotation.y = Math.PI;
+    add(R, sofaGroup);
+
+    // 结婚照 (挂墙式，沙发上方)
+    const weddingPhotoGroup = new THREE.Group();
+    
+    // 相框（加大以框住两个人）
+    const frameBack = box(2.0, 1.5, 0.05, new THREE.MeshStandardMaterial({ color: '#8b4513', roughness: 0.5 }));
+    frameBack.position.set(0, 0, 0); weddingPhotoGroup.add(frameBack);
+    const frameBorder = box(2.1, 1.6, 0.02, new THREE.MeshStandardMaterial({ color: '#d4a574', roughness: 0.3 }));
+    frameBorder.position.set(0, 0, 0.02); weddingPhotoGroup.add(frameBorder);
+    
+    // 照片背景 - 浪漫粉色
+    const photoBg = box(1.8, 1.3, 0.01, new THREE.MeshStandardMaterial({ color: '#ffeef8', roughness: 0.3 }));
+    photoBg.position.set(0, 0, 0.03); weddingPhotoGroup.add(photoBg);
+    
+    // 结婚照人物 - 一对夫妻（完整人形）
+    const personMat = new THREE.MeshStandardMaterial({ color: '#f0d0b0', roughness: 0.4 });
+    const hairMat = new THREE.MeshStandardMaterial({ color: '#4a3728', roughness: 0.5 });
+    
+    // 左边 - 新郎（完整人形）
+    const groom = new THREE.Group();
+    // 头
+    const groomHead = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), personMat);
+    groomHead.position.set(0, 0.68, 0); groom.add(groomHead);
+    // 头发（只覆盖头顶，露出脸部）
+    const groomHair = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), hairMat);
+    groomHair.position.set(0, 0.72, 0.01); groom.add(groomHair);
+    // 眼睛
+    const groomEyeL = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 8), new THREE.MeshStandardMaterial({ color: '#222222', roughness: 0.8 }));
+    groomEyeL.position.set(-0.045, 0.7, 0.12); groom.add(groomEyeL);
+    const groomEyeR = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 8), new THREE.MeshStandardMaterial({ color: '#222222', roughness: 0.8 }));
+    groomEyeR.position.set(0.045, 0.7, 0.12); groom.add(groomEyeR);
+    // 身体（调整尺寸和位置，更协调）
+    const groomBody = box(0.35, 0.5, 0.12, new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.4 }));
+    groomBody.position.set(0, 0.35, 0); groom.add(groomBody);
+    // 领带（调整位置）
+    const groomTie = box(0.04, 0.28, 0.03, new THREE.MeshStandardMaterial({ color: '#4a7c9b', roughness: 0.4 }));
+    groomTie.position.set(0, 0.48, 0.06); groom.add(groomTie);
+    // 腿（更长，往上延伸）
+    const groomLegL = box(0.08, 0.95, 0.06, new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.4 }));
+    groomLegL.position.set(-0.08, 0.25, 0); groom.add(groomLegL);
+    const groomLegR = box(0.08, 0.95, 0.06, new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.4 }));
+    groomLegR.position.set(0.08, 0.25, 0); groom.add(groomLegR);
+    groom.position.set(-0.5, -0.38, 0.04); weddingPhotoGroup.add(groom);
+    
+    // 右边 - 新娘（完整人形）
+    const bride = new THREE.Group();
+    // 头
+    const brideHead = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), personMat);
+    brideHead.position.set(0, 0.6, 0); bride.add(brideHead);
+    // 头发（长发，只覆盖头顶和后部，露出脸部）
+    const brideHair = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), hairMat);
+    brideHair.position.set(0, 0.65, 0.01); bride.add(brideHair);
+    // 眼睛
+    const brideEyeL = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 8), new THREE.MeshStandardMaterial({ color: '#222222', roughness: 0.8 }));
+    brideEyeL.position.set(-0.04, 0.62, 0.11); bride.add(brideEyeL);
+    const brideEyeR = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 8), new THREE.MeshStandardMaterial({ color: '#222222', roughness: 0.8 }));
+    brideEyeR.position.set(0.04, 0.62, 0.11); bride.add(brideEyeR);
+    // 身体（婚纱）
+    const brideBody = box(0.32, 0.5, 0.15, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3 }));
+    brideBody.position.set(0, 0.28, 0); bride.add(brideBody);
+    // 手臂
+    const brideArmL = box(0.06, 0.4, 0.06, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3 }));
+    brideArmL.position.set(-0.18, 0.35, 0); bride.add(brideArmL);
+    const brideArmR = box(0.06, 0.4, 0.06, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3 }));
+    brideArmR.position.set(0.18, 0.35, 0); bride.add(brideArmR);
+    // 裙子下摆
+    const brideSkirt = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 0.35, 16), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3 }));
+    brideSkirt.position.set(0, -0.1, 0); bride.add(brideSkirt);
+    // 腿
+    const brideLegL = box(0.08, 0.3, 0.06, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3 }));
+    brideLegL.position.set(-0.06, -0.05, 0); bride.add(brideLegL);
+    const brideLegR = box(0.08, 0.3, 0.06, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3 }));
+    brideLegR.position.set(0.06, -0.05, 0); bride.add(brideLegR);
+    bride.position.set(0.5, -0.35, 0.04); weddingPhotoGroup.add(bride);
+    
+    weddingPhotoGroup.position.set(0, 2.5, 6.375);  // 紧贴后墙
+    weddingPhotoGroup.rotation.y = Math.PI;  // 照片朝外
+    add(R, weddingPhotoGroup);
+
+    // 空调 (壁挂式，安装在右墙)
+    const acGroup = new THREE.Group();
+    const acBody = box(1.2, 0.35, 0.25, new THREE.MeshStandardMaterial({ color: '#e8e8e8', roughness: 0.2 }));
+    acBody.position.set(0, 0, 0); acGroup.add(acBody);
+    const acGrille = box(1.1, 0.05, 0.2, new THREE.MeshStandardMaterial({ color: '#c8c8c8', roughness: 0.3 }));
+    acGrille.position.set(0, -0.15, 0.12); acGroup.add(acGrille);
+    const acControl = box(0.2, 0.1, 0.02, new THREE.MeshStandardMaterial({ color: '#333333', roughness: 0.5 }));
+    acControl.position.set(0.4, 0.08, 0.13); acGroup.add(acControl);
+    acGroup.position.set(5.675, 3, 3);  // 贴近右墙
+    acGroup.rotation.y = Math.PI / 2;  // 旋转90度，与墙面平行，出风口朝室内
+    add(R, acGroup);
+
+    // 电视机 (挂墙式，放在左墙)
+    const tvGroup = new THREE.Group();
+    const tvFrame = box(1.5, 0.9, 0.08, new THREE.MeshStandardMaterial({ color: '#222222', roughness: 0.3 }));
+    tvFrame.position.set(0, 0, 0); tvGroup.add(tvFrame);
+    const tvScreen = box(1.4, 0.8, 0.02, new THREE.MeshStandardMaterial({ color: '#0a1628', roughness: 0.1 }));
+    tvScreen.position.set(0, 0, 0.05); tvGroup.add(tvScreen);
+    const tvGlow = new THREE.Mesh(new THREE.PlaneGeometry(1.35, 0.75), new THREE.MeshBasicMaterial({ color: '#1a365d', transparent: true, opacity: 0.3 }));
+    tvGlow.position.set(0, 0, 0.06); tvGroup.add(tvGlow);
+    tvGroup.position.set(-6.4, 2.5, 3);  // 紧贴左墙
+    tvGroup.rotation.y = -Math.PI / 2;  // 旋转90度，与墙面平行，屏幕朝室内
+    add(R, tvGroup);
+
+    // 音响 (挂墙式，电视机两侧)
+    const speakerMat = new THREE.MeshStandardMaterial({ color: '#333333', roughness: 0.4 });
+    
+    // 左侧音响
+    const speakerGroupL = new THREE.Group();
+    const speakerBoxL = box(0.15, 0.5, 0.25, speakerMat);
+    speakerBoxL.position.set(0, 0, 0); speakerGroupL.add(speakerBoxL);
+    const speakerGrilleL = box(0.12, 0.4, 0.02, new THREE.MeshStandardMaterial({ color: '#555555', roughness: 0.5 }));
+    speakerGrilleL.position.set(0, 0, -0.12); speakerGroupL.add(speakerGrilleL);
+    speakerGroupL.position.set(-6.475, 2.5, 2.1);  // 紧贴墙面
+    add(R, speakerGroupL);
+    
+    // 右侧音响
+    const speakerGroupR = new THREE.Group();
+    const speakerBoxR = box(0.15, 0.5, 0.25, speakerMat);
+    speakerBoxR.position.set(0, 0, 0); speakerGroupR.add(speakerBoxR);
+    const speakerGrilleR = box(0.12, 0.4, 0.02, new THREE.MeshStandardMaterial({ color: '#555555', roughness: 0.5 }));
+    speakerGrilleR.position.set(0, 0, -0.12); speakerGroupR.add(speakerGrilleR);
+    speakerGroupR.position.set(-6.475, 2.5, 3.9);  // 紧贴墙面
+    add(R, speakerGroupR);
+
+    // ---- 6. 室内卧室天花板 ----
+    const futureIndoorCeilMat = new THREE.MeshStandardMaterial({ color: '#f5f0fa', roughness: 0.8 });
+    const futureIndoorCeil = box(SIZE, 0.15, SIZE * 0.52, futureIndoorCeilMat);
+    futureIndoorCeil.position.set(0, 4.3, SIZE * 0.25); add(R, futureIndoorCeil);
+
+    // 室内墙壁（温馨暖色调）
+    const futureWallMat = new THREE.MeshStandardMaterial({ color: '#f5e6d3', roughness: 0.7 });
+    
+    // 左墙 - 室内部分
+    const futureLeftWall = box(0.12, 4.2, SIZE * 0.5, futureWallMat);
+    futureLeftWall.position.set(-SIZE / 2, 2.1, SIZE * 0.25); add(R, futureLeftWall);
+    
+    // 右墙 - 室内部分
+    const futureRightWall = box(0.12, 4.2, SIZE * 0.5, futureWallMat);
+    futureRightWall.position.set(SIZE / 2, 2.1, SIZE * 0.25); add(R, futureRightWall);
+    
+    // 后墙
+    const futureBackWall = box(SIZE, 4.2, 0.12, futureWallMat);
+    futureBackWall.position.set(0, 2.1, SIZE / 2); add(R, futureBackWall);
+    
+    // 门框发光效果 - 温暖的金色
+    const futureDoorGlowMat = new THREE.MeshBasicMaterial({ color: '#ffcc88', transparent: true, opacity: 0.6 });
+    const futureDoorGlowL = box(0.04, 3.8, 0.04, futureDoorGlowMat);
+    futureDoorGlowL.position.set(-2, 1.9, 0); add(R, futureDoorGlowL);
+    const futureDoorGlowR = box(0.04, 3.8, 0.04, futureDoorGlowMat);
+    futureDoorGlowR.position.set(2, 1.9, 0); add(R, futureDoorGlowR);
+    const futureDoorGlowT = box(4, 0.04, 0.04, futureDoorGlowMat);
+    futureDoorGlowT.position.set(0, 3.9, 0); add(R, futureDoorGlowT);
+
+    // 天花板装饰灯带 - 温暖的金色光
+    const futureCeilingLightMat = new THREE.MeshBasicMaterial({ color: '#ffcc88', transparent: true, opacity: 0.6 });
+    // 左侧灯带
+    const futureTopLightL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, SIZE * 0.48), futureCeilingLightMat);
+    futureTopLightL.position.set(-SIZE / 2 + 0.2, 4.25, SIZE * 0.25); add(R, futureTopLightL);
+    // 右侧灯带
+    const futureTopLightR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, SIZE * 0.48), futureCeilingLightMat);
+    futureTopLightR.position.set(SIZE / 2 - 0.2, 4.25, SIZE * 0.25); add(R, futureTopLightR);
+    // 后墙灯带
+    const futureTopLightB = new THREE.Mesh(new THREE.BoxGeometry(SIZE - 0.8, 0.08, 0.04), futureCeilingLightMat);
+    futureTopLightB.position.set(0, 4.25, SIZE / 2 - 0.2); add(R, futureTopLightB);
+
+    // ---- 7. 氛围灯光 ----
+    // 阳台区域（顶楼天台）：城市暖色调灯光
+    const futureLight1 = new THREE.PointLight(0xffaa55, 1.5, 14);
+    futureLight1.position.set(0, 4, -2); scenes[R].group.add(futureLight1);
+    const futureLight2 = new THREE.PointLight(0xffcc88, 0.8, 10);
+    futureLight2.position.set(-2, 2, -3.5); scenes[R].group.add(futureLight2);
+    const futureLight3 = new THREE.PointLight(0xffeeaa, 0.6, 8);
+    futureLight3.position.set(2, 2.5, -3); scenes[R].group.add(futureLight3);
+    
+    // 室内区域（卧室）：暖色调、温馨感 - 增强亮度
+    const futureIndoorLight1 = new THREE.PointLight(0xffd699, 2.5, 15);
+    futureIndoorLight1.position.set(-2, 3.5, 3); scenes[R].group.add(futureIndoorLight1);
+    const futureIndoorLight2 = new THREE.PointLight(0xffb366, 2.0, 14);
+    futureIndoorLight2.position.set(2, 3.2, 4.5); scenes[R].group.add(futureIndoorLight2);
+    const futureIndoorLight3 = new THREE.PointLight(0xffe0b3, 1.8, 12);
+    futureIndoorLight3.position.set(0, 3.8, 2); scenes[R].group.add(futureIndoorLight3);
+
+    // 床头壁灯 - 增强亮度
+    const futureBedLightL = new THREE.PointLight(0xfff5e6, 2.2, 8);
+    futureBedLightL.position.set(-4.5, 2.2, 3); scenes[R].group.add(futureBedLightL);
+    const futureBedLightR = new THREE.PointLight(0xfff5e6, 2.2, 8);
+    futureBedLightR.position.set(-1.9, 2.2, 3); scenes[R].group.add(futureBedLightR);
+    
+    // 环境光 - 让整个卧室更明亮
+    const futureAmbientLight = new THREE.AmbientLight(0xfff8f0, 0.6);
+    scenes[R].group.add(futureAmbientLight);
+    
+    // 顶灯 - 中央主照明
+    const futureCeilingLight = new THREE.PointLight(0xffffff, 1.8, 20);
+    futureCeilingLight.position.set(0, 3.8, 2.5); scenes[R].group.add(futureCeilingLight);
+
+    // 卧室墙壁碰撞体 - 防止穿墙
+    // 左墙（门口左侧部分）
+    addCollider(R, -SIZE / 2, SIZE / 4, 0.12, SIZE / 2);
+    // 右墙（门口右侧部分）
+    addCollider(R, SIZE / 2, SIZE / 4, 0.12, SIZE / 2);
+    // 后墙
+    addCollider(R, 0, SIZE / 2, SIZE, 0.12);
   })();
 
   // ============================================
@@ -3922,7 +4548,7 @@
       });
     }
 
-    // 未来房间: 星图旋转 + 植物摇摆
+    // 未来房间: 星图旋转 + 星星闪烁 + 流星动画 + 玻璃门自动开关
     if (currentScene === 'future') {
       activeSceneData.group.traverse(child => {
         if (child.userData && child.userData.starGlobe) {
@@ -3931,6 +4557,40 @@
         }
         if (child.userData && child.userData.plant) {
           child.rotation.z = Math.sin(Date.now() * 0.002 + child.position.x) * 0.1;
+        }
+        // 星星闪烁效果
+        if (child.userData && child.userData.futureBigStars) {
+          child.material.opacity = 0.6 + Math.sin(Date.now() * 0.003) * 0.3;
+        }
+        // 流星动画
+        if (child.userData && child.userData.futureShootingStars) {
+          const positions = child.geometry.attributes.position.array;
+          for (let i = 0; i < positions.length; i += 3) {
+            positions[i + 2] -= dt * 8; // 向远处移动
+            positions[i] += Math.sin(Date.now() * 0.001 + i) * dt * 2; // 轻微摆动
+            // 重置超出范围的流星（使用固定值，避免依赖SIZE）
+            if (positions[i + 2] < -30) {
+              positions[i] = (Math.random() - 0.5) * 40;
+              positions[i + 1] = Math.random() * 5 + 3;
+              positions[i + 2] = 20;
+            }
+          }
+          child.geometry.attributes.position.needsUpdate = true;
+        }
+        // 玻璃门自动开关
+        if (child.userData && child.userData.isDoorGlass) {
+          const doorPosZ = child.position.z;
+          const targetZ = child.userData.isLeftDoor ? child.userData.openZ : child.userData.openZ;
+          const currentZ = child.position.z;
+          const threshold = 2.5; // 玩家靠近门的距离阈值
+          const playerNear = Math.abs(player.position.z) < threshold && Math.abs(player.position.x) < 2.5;
+          let newZ;
+          if (playerNear) {
+            newZ = currentZ + (targetZ - currentZ) * dt * 3; // 打开
+          } else {
+            newZ = currentZ + (child.userData.closedZ - currentZ) * dt * 2; // 关闭
+          }
+          child.position.z = newZ;
         }
       });
     }
