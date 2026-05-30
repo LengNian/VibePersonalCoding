@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>记忆博物馆 · Memory Museum 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>时光博物馆 · Museum of Time</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
 
@@ -80,7 +82,7 @@
     left: 50%;
     transform: translateX(-50%);
     color: var(--gold-light);
-    font-size: 14px;
+    font-size: 18px;
     letter-spacing: 3px;
     opacity: 0;
     transition: opacity 0.4s;
@@ -96,8 +98,8 @@
     bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
-    color: rgba(160,152,136,0.5);
-    font-size: 11px;
+    color: rgba(160,152,136,0.55);
+    font-size: 14px;
     letter-spacing: 2px;
   }
 
@@ -285,6 +287,133 @@
     text-align: center;
   }
 
+  /* ---- 密码锁系统 ---- */
+  .pin-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 350;
+    background: rgba(5, 4, 12, 0.92);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    cursor: none;
+  }
+  .pin-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .pin-panel {
+    background: linear-gradient(160deg, #0d1117 0%, #161b22 50%, #0a0e14 100%);
+    border: 1px solid rgba(80, 180, 255, 0.25);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 50px rgba(60, 160, 255, 0.08);
+    padding: 36px 34px 30px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: translateY(20px) scale(0.96);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .pin-overlay.active .pin-panel {
+    transform: translateY(0) scale(1);
+  }
+  .pin-title {
+    color: #88ccff;
+    font-size: 18px;
+    letter-spacing: 4px;
+    margin-bottom: 18px;
+    font-family: 'Noto Serif SC', serif;
+  }
+  .pin-question {
+    color: #b0c8e0;
+    font-size: 14px;
+    letter-spacing: 1px;
+    line-height: 2;
+    margin-bottom: 22px;
+    font-family: 'Noto Serif SC', serif;
+  }
+  .pin-display {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 26px;
+  }
+  .pin-digit {
+    width: 52px;
+    height: 60px;
+    background: rgba(15, 30, 60, 0.5);
+    border: 1px solid rgba(80, 160, 220, 0.35);
+    border-radius: 6px;
+    color: #66bbff;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    transition: all 0.25s;
+  }
+  .pin-digit.filled {
+    border-color: rgba(100, 200, 255, 0.7);
+    box-shadow: 0 0 14px rgba(70, 150, 240, 0.25);
+  }
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 230px;
+    margin: 0 auto;
+  }
+  .pin-key {
+    width: 62px;
+    height: 46px;
+    background: rgba(25, 45, 80, 0.35);
+    border: 1px solid rgba(80, 150, 210, 0.3);
+    border-radius: 5px;
+    color: #b8d8f8;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: monospace;
+  }
+  .pin-key:hover {
+    background: rgba(40, 75, 130, 0.55);
+    border-color: rgba(100, 190, 255, 0.5);
+    color: #fff;
+  }
+  .pin-key.del { color: #ff8877; font-size: 14px; border-color: rgba(255, 130, 110, 0.25); }
+  .pin-key.del:hover { border-color: rgba(255, 150, 130, 0.5); background: rgba(100, 40, 35, 0.4); }
+  .pin-key.confirm { color: #66ee88; font-size: 16px; border-color: rgba(100, 240, 140, 0.3); }
+  .pin-key.confirm:hover { border-color: rgba(130, 250, 160, 0.5); background: rgba(35, 90, 45, 0.4); }
+  .pin-error {
+    color: #ff6666;
+    font-size: 13px;
+    margin-top: 16px;
+    letter-spacing: 1px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .pin-error.show { opacity: 1; }
+  .pin-close {
+    position: absolute;
+    top: 12px; right: 16px;
+    background: none;
+    border: 1px solid rgba(100, 180, 255, 0.2);
+    color: #6699bb;
+    font-size: 16px;
+    width: 28px; height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.3s;
+  }
+  .pin-close:hover { border-color: rgba(130, 200, 255, 0.5); color: #aaddff; }
+
   /* ---- 天气指示器 ---- */
   .weather-indicator {
     position: absolute;
@@ -311,7 +440,7 @@
   <div class="cursor" id="cursor"></div>
 
   <div class="hud">
-    <div class="scene-label" id="sceneLabel">记 忆 博 物 馆</div>
+    <div class="scene-label" id="sceneLabel">时 光 博 物 馆</div>
     <div class="interact-hint" id="interactHint">按 F 查看</div>
     <div class="controls-help">WASD 移动 | 空格跳跃 | 鼠标360°视角 | E 进门 | F 查看展品 | 1晴 2雨 3雪 4夜</div>
     <div class="weather-indicator" id="weatherIndicator">☀️</div>
@@ -328,6 +457,23 @@
     </div>
   </div>
 
+  <!-- 密码锁界面 -->
+  <div class="pin-overlay" id="pinOverlay">
+    <div class="pin-panel" style="position:relative;">
+      <button class="pin-close" id="pinClose">&times;</button>
+      <div class="pin-title">🔒 未来之门</div>
+      <div class="pin-question" id="pinQuestion"></div>
+      <div class="pin-display">
+        <div class="pin-digit" id="pinD0"></div>
+        <div class="pin-digit" id="pinD1"></div>
+        <div class="pin-digit" id="pinD2"></div>
+        <div class="pin-digit" id="pinD3"></div>
+      </div>
+      <div class="pin-keypad" id="pinKeypad"></div>
+      <div class="pin-error" id="pinError">密码错误，请重试</div>
+    </div>
+  </div>
+
   <!-- 展品弹窗 -->
   <div class="modal-overlay" id="exhibitModal">
     <div class="modal-card">
@@ -340,7 +486,7 @@
   <!-- 点击开始提示（启用音频） -->
   <div class="start-overlay" id="startOverlay">
     <div class="start-content">
-      <h1>记忆博物馆 · Memory Museum 3D</h1>
+      <h1>时光博物馆 · Museum of Time</h1>
       <p>点击任意处开始</p>
       <p class="hint">Click anywhere to start</p>
     </div>
@@ -365,17 +511,21 @@
     .start-content {
       text-align: center;
       color: var(--gold-light);
+      font-family: 'Noto Serif SC', 'SimSun', serif;
+      -webkit-font-smoothing: antialiased;
     }
     .start-content h1 {
       font-size: 32px;
       letter-spacing: 6px;
       margin-bottom: 30px;
       font-weight: 400;
+      font-family: 'Noto Serif SC', 'SimSun', serif;
     }
     .start-content p {
       font-size: 16px;
       letter-spacing: 4px;
       opacity: 0.8;
+      font-family: 'Noto Serif SC', 'SimSun', serif;
     }
     .start-content .hint {
       font-size: 12px;
@@ -697,23 +847,115 @@
   createSconce(CORRIDOR_WIDTH / 2, 3, 1);
   createSconce(CORRIDOR_WIDTH / 2, 8.5, 1);
 
+  // ===== 过去之门纹理 — 暖旧木门，圆形窗口 =====
+  const pastDoorTex = createCanvasTexture(256, 512, (ctx, w, h) => {
+    // 暖色调旧木头
+    const dGrad = ctx.createLinearGradient(0, 0, w, 0);
+    dGrad.addColorStop(0, '#6b3a2a');
+    dGrad.addColorStop(0.5, '#7a4530');
+    dGrad.addColorStop(1, '#653528');
+    ctx.fillStyle = dGrad; ctx.fillRect(0, 0, w, h);
+    // 细木纹
+    for (let i = 0; i < 100; i++) {
+      ctx.strokeStyle = `rgba(10,5,2,${0.05 + Math.random() * 0.1})`;
+      ctx.lineWidth = 0.4 + Math.random() * 2;
+      ctx.beginPath(); ctx.moveTo(0, Math.random() * h);
+      for (let y = 0; y < h; y += 8) ctx.lineTo(Math.random() * w, y);
+      ctx.stroke();
+    }
+    // 竖条面板分割
+    for (let x = 25; x < w; x += 35) {
+      ctx.fillStyle = 'rgba(0,0,0,0.06)'; ctx.fillRect(x - 1, 0, 2, h);
+    }
+    // 圆形窗口 (上方)
+    const cx = w / 2, cy = h * 0.25, cr = 55;
+    ctx.fillStyle = '#ffe8c0'; ctx.beginPath(); ctx.arc(cx, cy, cr, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#8b6914'; ctx.lineWidth = 5; ctx.stroke();
+    // 十字窗框
+    ctx.strokeStyle = '#8b6914'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx, cy - cr); ctx.lineTo(cx, cy + cr); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx - cr, cy); ctx.lineTo(cx + cr, cy); ctx.stroke();
+    // 暖光从窗口透出
+    const glowGrad = ctx.createRadialGradient(cx, cy, cr * 0.3, cx, cy, cr);
+    glowGrad.addColorStop(0, 'rgba(255,240,180,0.25)'); glowGrad.addColorStop(1, 'rgba(255,240,180,0)');
+    ctx.fillStyle = glowGrad; ctx.beginPath(); ctx.arc(cx, cy, cr, 0, Math.PI * 2); ctx.fill();
+    // 表面磨损
+    for (let i = 0; i < 40; i++) {
+      ctx.fillStyle = `rgba(0,0,0,${0.02 + Math.random() * 0.04})`;
+      ctx.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 6, 1 + Math.random() * 2);
+    }
+  });
+
+  // ===== 现在之门纹理 — 学院风门，带竖长玻璃窗 =====
+  const presentDoorTex = createCanvasTexture(256, 512, (ctx, w, h) => {
+    // 木色底
+    const dGrad = ctx.createLinearGradient(0, 0, w, 0);
+    dGrad.addColorStop(0, '#5a4a3a');
+    dGrad.addColorStop(0.5, '#6b5a48');
+    dGrad.addColorStop(1, '#554435');
+    ctx.fillStyle = dGrad; ctx.fillRect(0, 0, w, h);
+    // 垂直木纹
+    for (let i = 0; i < 80; i++) {
+      ctx.strokeStyle = `rgba(10,8,5,${0.04 + Math.random() * 0.08})`;
+      ctx.lineWidth = 0.3 + Math.random() * 1.5;
+      ctx.beginPath(); ctx.moveTo(0, Math.random() * h);
+      for (let y = 0; y < h; y += 6) ctx.lineTo(Math.random() * w, y);
+      ctx.stroke();
+    }
+    // 上面板 (带竖长玻璃窗)
+    const panelTop = h * 0.08, panelBot = h * 0.62, panelW = w - 40;
+    // 面板凹槽
+    ctx.fillStyle = 'rgba(0,0,0,0.08)'; ctx.fillRect(15, panelTop, panelW, panelBot - panelTop);
+    ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fillRect(17, panelTop + 2, panelW - 4, panelBot - panelTop - 4);
+    // 竖长玻璃窗 (教室门风格)
+    const gx = w * 0.25, gw = w * 0.5, gy = h * 0.12, gh = h * 0.48;
+    ctx.fillStyle = '#d8e8f4'; ctx.fillRect(gx, gy, gw, gh);
+    ctx.strokeStyle = '#8b7a6a'; ctx.lineWidth = 4; ctx.strokeRect(gx, gy, gw, gh);
+    // 玻璃上的磨砂效果
+    ctx.fillStyle = 'rgba(200,220,240,0.3)'; ctx.fillRect(gx + 2, gy + 2, gw - 4, gh - 4);
+    // 灯光透过
+    const glassGrad = ctx.createLinearGradient(0, gy, 0, gy + gh);
+    glassGrad.addColorStop(0, 'rgba(255,245,220,0.15)'); glassGrad.addColorStop(0.5, 'rgba(255,245,220,0.08)');
+    glassGrad.addColorStop(1, 'rgba(255,245,220,0.15)');
+    ctx.fillStyle = glassGrad; ctx.fillRect(gx, gy, gw, gh);
+    // 下面板
+    const bt = h * 0.65, bh = h * 0.3;
+    ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(20, bt, panelW, bh);
+    ctx.fillStyle = 'rgba(255,255,255,0.02)'; ctx.fillRect(22, bt + 2, panelW - 4, bh - 4);
+    // 边框线
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 2;
+    ctx.strokeRect(20, bt, panelW, bh);
+    // 磨损
+    for (let i = 0; i < 30; i++) {
+      ctx.fillStyle = `rgba(0,0,0,${0.02 + Math.random() * 0.03})`;
+      ctx.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 4, 1 + Math.random() * 2);
+    }
+  });
+
+  const pastDoorMatCustom = new THREE.MeshStandardMaterial({ map: pastDoorTex, roughness: 0.65, metalness: 0.03, color: '#5a3520' });
+  const pastFrameMat = new THREE.MeshStandardMaterial({ color: '#5a3520', roughness: 0.55, metalness: 0.05 });
+  const presentDoorMatCustom = new THREE.MeshStandardMaterial({ map: presentDoorTex, roughness: 0.6, metalness: 0.04, color: '#5a4a3a' });
+  const presentFrameMat = new THREE.MeshStandardMaterial({ color: '#4a3a2a', roughness: 0.5, metalness: 0.05 });
+
   // ---- 三扇门 ----
-  function createDoor(group, x, z, rotY, labelText, roomKey) {
+  function createDoor(group, x, z, rotY, labelText, roomKey, customDoorMat, customFrameMat) {
+    const dfMat = customFrameMat || frameMat;
+    const ddMat = customDoorMat || doorMat;
     const g = new THREE.Group();
 
-    // 门框
-    const frameTop = box(2.2, 0.2, 0.3, frameMat);
+    // 门框 (加深到0.35确保覆盖墙壁)
+    const frameTop = box(2.2, 0.2, 0.35, dfMat);
     frameTop.position.set(0, 3.3, 0);
     g.add(frameTop);
-    const frameL = box(0.2, 3.2, 0.3, frameMat);
+    const frameL = box(0.2, 3.2, 0.35, dfMat);
     frameL.position.set(-1, 1.6, 0);
     g.add(frameL);
-    const frameR = box(0.2, 3.2, 0.3, frameMat);
+    const frameR = box(0.2, 3.2, 0.35, dfMat);
     frameR.position.set(1, 1.6, 0);
     g.add(frameR);
 
     // 门板
-    const door = box(1.8, 3, 0.12, doorMat);
+    const door = box(1.8, 3, 0.12, ddMat);
     door.position.set(0, 1.5, 0);
     door.userData.isDoor = true;
     door.userData.roomKey = roomKey;
@@ -754,8 +996,8 @@
     addCollider(group, x, z, 2.2, 0.4, roomKey);
   }
 
-  createDoor('corridor', -CORRIDOR_WIDTH / 2 + 0.05, 4.5, Math.PI / 2, '过去', 'past');
-  createDoor('corridor', CORRIDOR_WIDTH / 2 - 0.05, 7.5, -Math.PI / 2, '现在', 'present');
+  createDoor('corridor', -CORRIDOR_WIDTH / 2 + 0.2, 4.5, Math.PI / 2, '过去', 'past', pastDoorMatCustom, pastFrameMat);
+  createDoor('corridor', CORRIDOR_WIDTH / 2 - 0.2, 7.5, -Math.PI / 2, '现在', 'present', presentDoorMatCustom, presentFrameMat);
   createDoor('corridor', -CORRIDOR_WIDTH / 2 + 0.35, 10.5, Math.PI / 2, '未来', 'future');
 
   // ---- 馆长之门 (走廊起点) ----
@@ -955,6 +1197,10 @@
     castle.position.set(5.5,0.05,10.6);castle.rotation.y=0.3;add(R,castle);
     addCollider(R,6,11,2,2);
 
+    // 沙坑交互
+    const sandInt=new THREE.Mesh(new THREE.BoxGeometry(3,1,3),new THREE.MeshBasicMaterial({visible:false}));sandInt.position.set(5.5,0.5,10.6);
+    addInteractable(R,sandInt,{type:'exhibit',title:'沙坑与沙堡',content:'<p>小时候最喜欢在沙坑里建城堡。用小铲子挖护城河，用桶倒扣出塔楼，插一根树枝当旗杆。</p><p>太阳下山的时候，妈妈喊我回家。我说明天还要来——可是第二天沙堡就被别人踩塌了。</p><p>那时候我学到第一课：美好的东西不一定要恒久，建过、笑过，就够了。</p>'});
+
     // ===== 跷跷板 (左后) =====
     const seesawG=new THREE.Group();
     const ssBase=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.5,0.3),new THREE.MeshStandardMaterial({color:'#d4a050',roughness:0.3,metalness:0.4}));ssBase.position.y=0.25;seesawG.add(ssBase);
@@ -993,6 +1239,10 @@
     const mouth=new THREE.Mesh(new THREE.SphereGeometry(0.04,8).scale(1,0.5,1),new THREE.MeshStandardMaterial({color:'#4a2a1a',roughness:0.5}));mouth.position.set(0,0.98,-0.48);bear.add(mouth);
     bear.position.set(-8,0.02,18.5);bear.rotation.y=-0.8;add(R,bear);addCollider(R,-8,18.5,1,1);
 
+    // 布偶熊交互
+    const bearInt=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1.5),new THREE.MeshBasicMaterial({visible:false}));bearInt.position.set(-8,1,18.5);
+    addInteractable(R,bearInt,{type:'exhibit',title:'布偶熊',content:'<p>这只布偶熊陪了我很多年。它的一只耳朵有点歪，肚子上还有小时候我画上去的墨水印。</p><p>妈妈说要扔掉，我抱着它哭了整整一个下午。后来它就一直待在床头，看着我长大。</p><p>有些东西旧了才有温度——比如这只熊，比如那些舍不得的童年。</p>'});
+
     // ===== 环绕大象滑梯 (右侧) =====
     const elG=new THREE.Group();
     const elMat=new THREE.MeshStandardMaterial({color:'#7aacdc',roughness:0.25,metalness:0.1});
@@ -1026,6 +1276,10 @@
     // 后背阶梯
     for(let si=0;si<5;si++){const step=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.12,0.35),new THREE.MeshStandardMaterial({color:'#6b4c3b',roughness:0.5}));step.position.set(0,si*0.15,0-si*0.3);elG.add(step);}
     elG.position.set(4.5,0.05,15);elG.rotation.y=-0.3;add(R,elG);addCollider(R,4.5,15,3.5,3.5);
+
+    // 大象滑梯交互
+    const elephantInt=new THREE.Mesh(new THREE.BoxGeometry(4,3,4),new THREE.MeshBasicMaterial({visible:false}));elephantInt.position.set(4.5,1.5,15);
+    addInteractable(R,elephantInt,{type:'exhibit',title:'大象滑梯',content:'<p>幼儿园里最受欢迎的就是这座大象滑梯。从大象的尾巴爬上去，从长鼻子里滑下来——每次滑到底都哈哈大笑。</p><p>有时候排队的人太多了，我就站在旁边数："一个、两个、三个……"还没数到我自己，上课铃就响了。</p><p>那时候觉得，世界上最漫长的等待，就是等别人从滑梯上滑下来。</p>'});
 
     // ===== 展品交互 =====
     const swingInt=new THREE.Mesh(new THREE.BoxGeometry(2,3,2),new THREE.MeshBasicMaterial({visible:false}));swingInt.position.set(8,2,6);
@@ -1239,6 +1493,12 @@
     const skHeadR=new THREE.Mesh(new THREE.SphereGeometry(0.12,16),new THREE.MeshStandardMaterial({color:'#f5e0c0',roughness:0.5}));skHeadR.position.y=0.77;sitKidR.add(skHeadR);
     const skHatR=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.13,0.1,12),new THREE.MeshStandardMaterial({color:'#ffcc00',roughness:0.4}));skHatR.position.y=0.85;sitKidR.add(skHatR);
     sitKidR.position.set(3.7,0.13,5);sitKidR.rotation.y=Math.PI/2;add(R,sitKidR);
+    addCollider(R,3.7,5,0.6,0.6);  // 弹琴孩子碰撞
+
+    // 小学生碰撞检测
+    addCollider(R,-1.5,2.5,0.6,0.6);addCollider(R,0,2.8,0.6,0.6);addCollider(R,1.5,2.5,0.6,0.6);
+    addCollider(R,-0.8,3.3,0.6,0.6);addCollider(R,0.8,3.3,0.6,0.6);
+    addCollider(R,-3.2,5,0.6,0.6);  // 画画孩子
 
     // 灯光
     add(R, new THREE.PointLight('#ffe8b0', 14, 8, 2)).position.set(0, WH1-0.3, Z1);
@@ -1444,6 +1704,7 @@
         student.position.set(dx, 0.45, dz + 0.2);
         student.rotation.y = Math.PI;
         add(R, student);
+        addCollider(R, dx, dz + 0.2, 0.6, 0.6);  // 中学生碰撞
         
         // 晚自习交互
         const studentInteract = new THREE.Mesh(new THREE.BoxGeometry(1, 1.8, 0.8), new THREE.MeshBasicMaterial({visible:false}));
@@ -1564,6 +1825,8 @@
     const soccerBall = new THREE.Mesh(new THREE.SphereGeometry(0.26, 32, 32), new THREE.MeshStandardMaterial({color:'#ffffff', roughness:0.4}));
     soccerBall.position.set(sportX - 0.7, 0.26, sportZ);
     add(R, soccerBall);
+    addCollider(R, sportX, sportZ, 0.5, 0.5);        // 篮球
+    addCollider(R, sportX - 0.7, sportZ, 0.5, 0.5);  // 足球
     
 
     
@@ -1821,6 +2084,10 @@
     wbTex.colorSpace = THREE.SRGBColorSpace;
     const whiteboard = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.75), new THREE.MeshBasicMaterial({map:wbTex}));
     whiteboard.position.set(-1.5, 1.8, totalZ-0.2); whiteboard.rotation.y = Math.PI; add(R, whiteboard);
+
+    // 研究白板交互
+    const wbInteract=new THREE.Mesh(new THREE.BoxGeometry(2.8,2,0.2),new THREE.MeshBasicMaterial({visible:false}));wbInteract.position.set(-1.5,1.8,totalZ-0.2);
+    addInteractable(R,wbInteract,{type:'exhibit',title:'研究思路',content:'<p>白板上画满了研究路线图——从文献调研到实验设计，从数据分析到论文撰写。便利贴上记着导师的意见："创新点不够突出"、"再加一组对照实验"。</p><p>有时候盯着这面白板发呆，觉得每一条箭头都通向不同的未来。改了一版又一版，擦掉又重写。</p><p>科研的本质大概就是这样——在混乱中寻找秩序，在迷茫中坚持向前。</p>'});
 
     // ===== 本科元素 =====
     // 1. 社团公告栏 (左墙 z=19)
@@ -2158,6 +2425,11 @@
     guitar.rotation.z = -0.3;
     guitar.rotation.y = Math.PI / 2;
     add(R, guitar);
+    addCollider(R, -W/2 + 0.6, Z3, 0.4, 1.2);  // 吉他碰撞检测
+
+    // 吉他交互
+    const guitarInt=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1),new THREE.MeshBasicMaterial({visible:false}));guitarInt.position.set(-W/2 + 0.6,0.6,Z3);
+    addInteractable(R,guitarInt,{type:'exhibit',title:'老吉他',content:'<p>大三那年省了三个月饭钱买的。学了《小星星》和《同桌的你》，和弦切换总卡壳，但室友们还是给我鼓掌。</p><p>最难的那个期末，深夜复习到崩溃，我放下笔抱起吉他，随便扫了几个和弦——突然就觉得，好像也没什么大不了的。</p><p>音乐不能帮你通过考试，但能帮你熬过那个夜晚。</p>'});
 
     // ===== 衣帽架 (右墙前部) =====
     const coatRack = new THREE.Group();
@@ -3637,6 +3909,11 @@
     const globeBase = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.1, 16), darkMetalMat);
     globeBase.position.set(-2.5, 0.05, 1.8);
     add(R, globeBase);
+    addCollider(R, -2.5, 1.8, 1.0, 1.0);  // 地球仪碰撞检测
+
+    // 地球仪交互
+    const globeInteract=new THREE.Mesh(new THREE.SphereGeometry(0.7),new THREE.MeshBasicMaterial({visible:false}));globeInteract.position.set(-2.5,1.1,1.8);
+    addInteractable(R,globeInteract,{type:'exhibit',title:'地球仪',content:'<p>铜质的地球仪已经有些泛旧了，但每一条经纬线都清晰可见。</p><p>馆长说这是他在一个旧书店淘来的。他喜欢一边喝着咖啡，一边用手指轻轻拨动球体，想着那些还没去过的地方。</p><p>"你看，世界这么大——而我们记住的，不过是它的一小片。"</p>'});
 
     // 大圆形地毯
     const rug = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 0.05, 32), new THREE.MeshStandardMaterial({ color:'#7a2e2e', roughness:0.8 }));
@@ -4148,8 +4425,11 @@
     }, 800);
   }
 
-  // ESC 返回走廊
+  // ESC 返回走廊 / 关闭弹窗
   window.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && pinOverlay.classList.contains('active')) {
+      pinOverlay.classList.remove('active'); return;
+    }
     if (e.key === 'Escape' && currentScene !== 'corridor' && !isTransitioning) {
       switchScene('corridor');
     }
@@ -4173,6 +4453,7 @@
     // 走廊中：E 进门
     const { distance: doorDist, tag: doorTag } = getDoorDistance();
     if (doorDist < 1.5 && doorTag) {
+      if (doorTag === 'future') { showPinLock(); return; }
       switchScene(doorTag);
     }
   }
@@ -4204,10 +4485,83 @@
   });
 
   // ============================================
+  //  密码锁系统 (未来之门)
+  // ============================================
+  let pinCode = '';
+  const PIN_ANSWER = '2025';
+  const pinOverlay = document.getElementById('pinOverlay');
+
+  function showPinLock() {
+    pinCode = '';
+    updatePinDisplay();
+    document.getElementById('pinQuestion').innerHTML = 
+      '未来始于一个具体的年份——<br>那一年，你决定不再只是做梦，而是开始建造。<br><br>请输入那个四位数字。';
+    document.getElementById('pinError').classList.remove('show');
+    buildKeypad();
+    pinOverlay.classList.add('active');
+  }
+
+  function buildKeypad() {
+    const kp = document.getElementById('pinKeypad');
+    kp.innerHTML = '';
+    const keys = ['1','2','3','4','5','6','7','8','9','del','0','✓'];
+    keys.forEach(k => {
+      const btn = document.createElement('button');
+      btn.className = 'pin-key';
+      if (k === 'del') { btn.className += ' del'; btn.textContent = '←'; }
+      else if (k === '✓') { btn.className += ' confirm'; btn.textContent = '✓'; }
+      else btn.textContent = k;
+      btn.addEventListener('click', () => handlePinKey(k));
+      kp.appendChild(btn);
+    });
+  }
+
+  function handlePinKey(key) {
+    if (key === 'del') {
+      pinCode = pinCode.slice(0, -1);
+      updatePinDisplay();
+    } else if (key === '✓') {
+      if (pinCode.length === 4 && parseInt(pinCode, 10) > 2026) {
+        pinOverlay.classList.remove('active');
+        switchScene('future');
+      } else {
+        document.getElementById('pinError').classList.add('show');
+        pinCode = '';
+        updatePinDisplay();
+        setTimeout(() => document.getElementById('pinError').classList.remove('show'), 2200);
+      }
+    } else if (pinCode.length < 4) {
+      pinCode += key;
+      updatePinDisplay();
+    }
+  }
+
+  function updatePinDisplay() {
+    for (let i = 0; i < 4; i++) {
+      const el = document.getElementById('pinD' + i);
+      if (i < pinCode.length) {
+        el.textContent = '●';
+        el.classList.add('filled');
+      } else {
+        el.textContent = '';
+        el.classList.remove('filled');
+      }
+    }
+  }
+
+  // 关闭按钮
+  document.getElementById('pinClose').addEventListener('click', () => {
+    pinOverlay.classList.remove('active');
+  });
+  pinOverlay.addEventListener('click', (e) => {
+    if (e.target === pinOverlay) pinOverlay.classList.remove('active');
+  });
+
+  // ============================================
   //  对话系统 (交互式馆长对话)
   // ============================================
   const dialogueTree = [
-    { speaker:'馆长', text:'啊，你来了。请随意坐。我是这个记忆博物馆的策展人。', options:[
+    { speaker:'馆长', text:'啊，你来了。请随意坐。我是这个时光博物馆的策展人。', options:[
       { label:'你好，这个博物馆是你建的吗？', next:1 },
       { label:'这些房间都好特别。', next:2 },
     ]},
@@ -4279,8 +4633,12 @@
     currentDialogueNode = 0;
   }
 
-  // ESC 关闭对话
+  // ESC 关闭对话 / 密码锁
   window.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && pinOverlay.classList.contains('active')) {
+      e.stopPropagation();
+      pinOverlay.classList.remove('active'); return;
+    }
     if (e.key === 'Escape' && diaOverlay.classList.contains('active')) {
       e.stopPropagation();
       endDialogue();
@@ -4839,7 +5197,7 @@
 
   animate();
 
-  console.log('🏛️ 记忆博物馆已就绪');
+  console.log('🏛️ 时光博物馆已就绪');
   console.log('  WASD — 移动 | 移动鼠标 — 360° 旋转视角 | 滚轮 — 缩放');
   console.log('  走廊中靠近门按 E — 进入房间');
   console.log('  房间中靠近展品按 F — 查看');
