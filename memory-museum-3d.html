@@ -1444,10 +1444,16 @@
         student.position.set(dx, 0.45, dz + 0.2);
         student.rotation.y = Math.PI;
         add(R, student);
+        
+        // 晚自习交互
+        const studentInteract = new THREE.Mesh(new THREE.BoxGeometry(1, 1.8, 0.8), new THREE.MeshBasicMaterial({visible:false}));
+        studentInteract.position.set(dx, 0.9, dz + 0.2);
+        addInteractable(R, studentInteract, {
+          type:'exhibit', title:'晚自习时光',
+          content:'<p>晚自习的教室里很安静，只有笔尖划过纸张的沙沙声。</p><p>同学们都在埋头苦读，偶尔抬头看一眼黑板上的倒计时。</p><p>这些并肩奋斗的日子，是青春最深刻的印记。</p>'
+        });
       }
     }
-
-
 
     // ===== 倒计时牌 (右侧墙上) =====
     const countdownCanvas = document.createElement('canvas');
@@ -1848,6 +1854,14 @@
     clubTex.colorSpace = THREE.SRGBColorSpace;
     const clubBoard = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.3), new THREE.MeshBasicMaterial({map:clubTex}));
     clubBoard.position.set(-W/2 + 0.16, 1.8, Z3 - 3); clubBoard.rotation.y = Math.PI/2; add(R, clubBoard);
+    
+    // 社团公告栏交互
+    const clubInteract = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.5, 0.2), new THREE.MeshBasicMaterial({visible:false}));
+    clubInteract.position.set(-W/2 + 0.16, 1.8, Z3 - 3);
+    addInteractable(R, clubInteract, {
+      type:'exhibit', title:'社团公告栏',
+      content:'<p>丰富多彩的社团活动是大学生活的重要组成部分。</p><p>篮球社挥洒汗水，音乐社唱响青春，支教团传递温暖，摄影协会记录美好。</p><p>在这里，每个人都能找到属于自己的舞台，结识志同道合的朋友。</p>'
+    });
 
     // 2. 照片墙 (左墙 z=22)
     const photoCanvas = document.createElement('canvas');
@@ -1944,6 +1958,15 @@
     const tCup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.09, 8), new THREE.MeshStandardMaterial({color:'#333', roughness:0.3}));
     tCup.position.set(-0.5, 0.88, -0.2); labTable.add(tCup);
     labTable.position.set(0, 0.02, Z3 + 3); add(R, labTable);
+    addCollider(R, 0, Z3 + 3, 3.2, 1.0);  // 实验长桌碰撞检测
+    
+    // 研究长桌交互 (研究生努力科研)
+    const labTableInteract = new THREE.Mesh(new THREE.BoxGeometry(3.5, 1.5, 1.2), new THREE.MeshBasicMaterial({visible:false}));
+    labTableInteract.position.set(0, 1.2, Z3 + 3);
+    addInteractable(R, labTableInteract, {
+      type:'exhibit', title:'科研之路',
+      content:'<p>这是研究生的主战场——实验数据、论文草稿、参考文献堆满了桌面。</p><p>在这里，我们探索未知，挑战前沿。每一行代码、每一次实验，都是向真理迈进的脚步。</p><p>科研的道路并不平坦，但那些在实验室度过的日夜，终将化作知识的光芒。</p>'
+    });
 
     // ===== 椅子 + 研究生 =====
     const gChair = new THREE.Group();
@@ -1992,6 +2015,7 @@
       gsCalf.position.set(gsi*0.13, -0.22, 0.22); gsCalf.rotation.x = 0.15; gradStu.add(gsCalf);
     }
     gradStu.position.set(0, 0.45, Z3 + 3.8); gradStu.rotation.y = Math.PI; add(R, gradStu);
+    addCollider(R, 0, Z3 + 3.8, 0.8, 0.6);  // 研究生碰撞检测
 
     // ===== 咖啡机 (饮水机大小，右后角) =====
     const coffeeMachine = new THREE.Group();
@@ -2019,6 +2043,15 @@
       ccCup.position.set(cc*0.17, 1.07, -0.10); coffeeMachine.add(ccCup);
     }
     coffeeMachine.position.set(W/2 - 1.2, 0.02, Z3 + 3.5); coffeeMachine.rotation.y = -Math.PI/2; add(R, coffeeMachine);
+    addCollider(R, W/2 - 1.2, Z3 + 3.5, 0.6, 0.4);  // 咖啡机碰撞检测
+    
+    // 咖啡机交互 (醒神)
+    const coffeeInteract = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.5, 0.6), new THREE.MeshBasicMaterial({visible:false}));
+    coffeeInteract.position.set(W/2 - 1.2, 0.75, Z3 + 3.5);
+    addInteractable(R, coffeeInteract, {
+      type:'exhibit', title:'醒神咖啡',
+      content:'<p>科研路上的最佳伴侣——咖啡机。</p><p>凌晨三点，一杯滚烫的咖啡是最好的陪伴。它不仅唤醒昏沉的头脑，更给疲惫的心灵注入力量。</p><p>咖啡的香气弥漫在实验室，那是奋斗的味道。</p>'
+    });
 
     // ===== 绿化盆栽 (咖啡机旁) =====
     const plantPot = new THREE.Group();
@@ -2095,6 +2128,15 @@
     const fbBlanket = box(0.78, 0.06, 0.65, new THREE.MeshStandardMaterial({color:'#8fa8c8', roughness:0.7}));
     fbBlanket.position.set(0, 0.38, 0.55); foldBed.add(fbBlanket);
     foldBed.position.set(-W/2 + 2, 0.02, Z3 + 3); foldBed.rotation.y = 0; add(R, foldBed);
+    addCollider(R, -W/2 + 2, Z3 + 3, 2.2, 0.9);  // 折叠床碰撞检测
+    
+    // 折叠床交互 (熬夜实验)
+    const foldBedInteract = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.0, 1.2), new THREE.MeshBasicMaterial({visible:false}));
+    foldBedInteract.position.set(-W/2 + 2, 0.5, Z3 + 3);
+    addInteractable(R, foldBedInteract, {
+      type:'exhibit', title:'深夜鏖战',
+      content:'<p>实验到凌晨是常有的事，这张折叠床就是为熬夜准备的。</p><p>有时候太累了，就在这里小憩一会儿，醒来继续战斗。</p><p>那些灯火通明的夜晚，是科研路上最真实的写照。</p>'
+    });
 
     // ===== 吉他靠在床边 =====
     const guitar = new THREE.Group();
@@ -2150,6 +2192,7 @@
     wdDrip.position.set(0, 0.25, 0.16); waterDispenser.add(wdDrip);
     waterDispenser.position.set(-W/2 + 0.4, 0.02, Z3 - 4);
     add(R, waterDispenser);
+    addCollider(R, -W/2 + 0.4, Z3 - 4, 0.4, 0.3);  // 饮水机碰撞检测
 
     // ===== 垃圾桶 (右墙，自由段前部) =====
     const wasteBin = new THREE.Group();
@@ -2218,6 +2261,7 @@
     luggage.position.set(-W/2 + 0.8, 0.02, D1 + D2 + 1);  // 第三个房间左墙角
     luggage.rotation.y = Math.PI / 2;  // 靠在左墙上
     add(R, luggage);
+    addCollider(R, -W/2 + 0.8, D1 + D2 + 1, 0.5, 0.3);  // 行李箱1碰撞检测
 
     // ===== 第二个行李箱 (小号，放在旁边) =====
     const luggage2 = new THREE.Group();
@@ -2239,6 +2283,7 @@
     luggage2.position.set(-W/2 + 1.4, 0.02, D1 + D2 + 1.1);  // 第三个房间，第一个行李箱右侧
     luggage2.rotation.y = Math.PI / 2;
     add(R, luggage2);
+    addCollider(R, -W/2 + 1.4, D1 + D2 + 1.1, 0.4, 0.25);  // 行李箱2碰撞检测
 
     // ===== 第三个行李箱 (大号，放在旁边) =====
     const luggage3 = new THREE.Group();
@@ -2262,6 +2307,7 @@
     luggage3.position.set(-W/2 + 2.2, 0.02, D1 + D2 + 1);  // 第三个房间，第二个行李箱右侧
     luggage3.rotation.y = Math.PI / 2;
     add(R, luggage3);
+    addCollider(R, -W/2 + 2.2, D1 + D2 + 1, 0.6, 0.35);  // 行李箱3碰撞检测
 
     // ===== 体育用具备品架 (进门后左侧，不靠墙) =====
     const sportRack = new THREE.Group();
@@ -2278,18 +2324,29 @@
     sportRack.position.set(-3, 0.02, D1 + D2 + 1.5);  // 进门左侧，不靠墙
     sportRack.rotation.y = -Math.PI / 2;
     add(R, sportRack);
+    addCollider(R, -3, D1 + D2 + 1.5, 0.9, 0.3);  // 体育用品架碰撞检测
 
     // 篮球 (躺在地上，靠近货架)
     const uniBasketball = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16), new THREE.MeshStandardMaterial({color:'#e85d04', roughness:0.6}));
     uniBasketball.position.set(-2.5, 0.18, D1 + D2 + 2);
     uniBasketball.rotation.x = 0.3;
     add(R, uniBasketball);
+    addCollider(R, -2.5, D1 + D2 + 2, 0.4, 0.4);  // 篮球碰撞检测
 
     // 足球 (躺在地上，靠近货架)
     const uniFootball = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16), new THREE.MeshStandardMaterial({color:'#f5f5f5', roughness:0.5}));
     uniFootball.position.set(-3.5, 0.15, D1 + D2 + 2);
     uniFootball.rotation.set(0.2, 0, 0.4);
     add(R, uniFootball);
+    addCollider(R, -3.5, D1 + D2 + 2, 0.35, 0.35);  // 足球碰撞检测
+
+    // 体育用品交互 (强身健体)
+    const sportInteract = new THREE.Mesh(new THREE.BoxGeometry(2, 1.5, 1), new THREE.MeshBasicMaterial({visible:false}));
+    sportInteract.position.set(-3, 0.75, D1 + D2 + 1.8);
+    addInteractable(R, sportInteract, {
+      type:'exhibit', title:'强身健体',
+      content:'<p>身体是革命的本钱，大学时光怎能少得了运动？</p><p>篮球场上挥洒汗水，足球场上追逐奔跑，乒乓球台前你来我往。</p><p>强健的体魄，才能支撑起远大的梦想。运动不仅是锻炼，更是释放压力、结交朋友的方式。</p>'
+    });
 
     // 乒乓球拍 (挂在架子上)
     const pingPongPaddle = new THREE.Group();
@@ -2300,6 +2357,7 @@
     pingPongPaddle.position.set(-3.2, 1.1, D1 + D2 + 1.7);
     pingPongPaddle.rotation.y = Math.PI / 2;
     add(R, pingPongPaddle);
+    addCollider(R, -3.2, D1 + D2 + 1.7, 0.2, 0.2);  // 乒乓球拍碰撞检测
 
     // ===== 泡面杯+零食堆 =====
     const snackGrp = new THREE.Group();
@@ -2329,6 +2387,7 @@
     const chipBag = box(0.16, 0.02, 0.2, new THREE.MeshStandardMaterial({color:'#e74c3c', roughness:0.4}));
     chipBag.position.set(0.22, 0.06, 0.06); chipBag.rotation.z = 0.2; snackGrp.add(chipBag);
     snackGrp.position.set(-0.6, 0.84, Z3 + 3.2); snackGrp.rotation.y = Math.PI; add(R, snackGrp);
+    addCollider(R, -0.6, Z3 + 3.2, 0.5, 0.4);  // 零食堆碰撞检测
 
     // ===== 竞赛证书 (右墙) =====
     const uniCertCanvas = document.createElement('canvas');
@@ -2371,6 +2430,14 @@
     uniCertTex.colorSpace = THREE.SRGBColorSpace;
     const uniCertWall = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 2.3), new THREE.MeshBasicMaterial({map:uniCertTex}));
     uniCertWall.position.set(W/2 - 0.16, 1.9, Z3 + 1); uniCertWall.rotation.y = -Math.PI/2; add(R, uniCertWall);
+    
+    // 荣誉证书交互
+    const certInteract = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.5, 0.2), new THREE.MeshBasicMaterial({visible:false}));
+    certInteract.position.set(W/2 - 0.16, 1.9, Z3 + 1);
+    addInteractable(R, certInteract, {
+      type:'exhibit', title:'荣誉证书',
+      content:'<p>墙上挂满了各类竞赛证书和荣誉奖章。</p><p>数学建模竞赛国家级一等奖、程序设计大赛金牌、创新创业大赛特等奖……</p><p>每一张证书背后，都是无数个通宵达旦的努力，是对知识的执着追求，也是青春奋斗的见证。</p>'
+    });
 
     // ===== 上床下桌 (右墙 z=20) =====
     const loftBed = new THREE.Group();
@@ -2559,10 +2626,10 @@
     loftChair.position.set(-bwHalf - 0.06, 0.02, monZ);
     loftDesk.add(loftChair);
     const storageBox = box(0.38, 0.28, 0.3, new THREE.MeshStandardMaterial({color:'#5a8a6a', roughness:0.5}));
-    storageBox.position.set(-0.52, 0.14, 0.55);
+    storageBox.position.set(-0.75, 0.14, 0.55);  // 向左移动避免与电竞椅重叠
     loftBed.add(storageBox);
     const storageLid = box(0.4, 0.03, 0.32, new THREE.MeshStandardMaterial({color:'#4a7a5a', roughness:0.4}));
-    storageLid.position.set(-0.52, 0.3, 0.55);
+    storageLid.position.set(-0.75, 0.3, 0.55);  // 同步移动箱盖
     loftBed.add(storageLid);
     const suitcase = box(0.42, 0.2, 0.26, new THREE.MeshStandardMaterial({color:'#3a5a7a', roughness:0.35}));
     suitcase.position.set(-0.52, 0.1, 0.15);
@@ -2573,6 +2640,15 @@
     loftBed.position.set(W/2 - 0.55, 0.02, Z3 - 2);
     loftBed.scale.set(1.25, 1.25, 1.25);
     add(R, loftBed);
+    addCollider(R, W/2 - 0.55, Z3 - 2, 2.5, 2.0);  // 上床下桌碰撞检测
+    
+    // 上床下桌交互
+    const loftBedInteract = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.5, 2.0), new THREE.MeshBasicMaterial({visible:false}));
+    loftBedInteract.position.set(W/2 - 0.55, 1.2, Z3 - 2);
+    addInteractable(R, loftBedInteract, {
+      type:'exhibit', title:'上床下桌',
+      content:'<p>典型的大学生宿舍布局——上面是床，下面是书桌。</p><p>白天在这里学习，晚上在床上思考人生。小小的空间，承载着无数个奋斗的日夜。</p><p>书桌上堆着专业书、笔记本电脑，还有永远喝不完的咖啡。这是梦想开始的地方。</p>'
+    });
 
     // ===== 隔墙 =====
     function dividerWall(dz, mat, wh) {
