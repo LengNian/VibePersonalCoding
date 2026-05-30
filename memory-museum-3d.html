@@ -1741,21 +1741,79 @@
     const win3 = new THREE.Mesh(new THREE.PlaneGeometry(3, 2), new THREE.MeshBasicMaterial({color:'#2a3a4a'})); win3.position.set(0, 2.2, totalZ-0.16); add(R,win3);
     // 研究白板 (后墙左侧)
     const wbCanvas = document.createElement('canvas');
-    wbCanvas.width = 400; wbCanvas.height = 240;
+    wbCanvas.width = 500; wbCanvas.height = 350;
     const wbctx = wbCanvas.getContext('2d');
-    wbctx.fillStyle = '#f8f8f8'; wbctx.fillRect(0,0,400,240);
-    wbctx.strokeStyle = '#4472c4'; wbctx.lineWidth = 1;
-    wbctx.strokeRect(20,20,360,200);
-    wbctx.fillStyle = '#333'; wbctx.font = 'bold 20px serif';
-    wbctx.fillText('研究思路', 150, 55);
-    wbctx.fillStyle = '#555'; wbctx.font = '13px serif';
-    wbctx.fillText('1. 文献综述 - 找到研究空白', 40, 85);
-    wbctx.fillText('2. 实验设计 - 假设与验证', 40, 110);
-    wbctx.fillText('3. 数据分析 - 结论与展望', 40, 135);
-    wbctx.fillText('4. 论文写作 - 润色与投稿', 40, 160);
+    wbctx.fillStyle = '#f8f8f8'; wbctx.fillRect(0,0,500,350);
+    wbctx.strokeStyle = '#ccc'; wbctx.lineWidth = 1;
+    wbctx.strokeRect(10,10,480,330);
+    // 标题
+    wbctx.fillStyle = '#2c3e50'; wbctx.font = 'bold 22px serif';
+    wbctx.fillText('研究思路', 200, 38);
+    // 分隔线
+    wbctx.strokeStyle = '#4472c4'; wbctx.lineWidth = 2;
+    wbctx.beginPath(); wbctx.moveTo(10, 50); wbctx.lineTo(490, 50); wbctx.stroke();
+    // 左侧: 流程图
+    wbctx.fillStyle = '#4472c4'; wbctx.font = 'bold 14px serif';
+    wbctx.fillText('▶ 研究路径', 20, 75);
+    const steps = [
+      {text:'① 文献调研', sub:'阅读 200+ 篇论文', color:'#2e7d32'},
+      {text:'② 问题定义', sub:'找到研究空白', color:'#1565c0'},
+      {text:'③ 方法设计', sub:'实验+仿真+推导', color:'#e65100'},
+      {text:'④ 数据收集', sub:'3 个月实验周期', color:'#6a1b9a'},
+      {text:'⑤ 结果分析', sub:'数据可视化 · 结论推导', color:'#c62828'},
+      {text:'⑥ 论文撰写', sub:'LaTeX · 投稿 · 修改', color:'#00838f'},
+    ];
+    steps.forEach((s, i) => {
+      const y = 100 + i*35;
+      wbctx.fillStyle = s.color; wbctx.font = 'bold 14px serif';
+      wbctx.fillText(s.text, 30, y);
+      wbctx.fillStyle = '#666'; wbctx.font = '12px serif';
+      wbctx.fillText(s.sub, 150, y);
+      if (i < steps.length-1) {
+        wbctx.strokeStyle = '#aaa'; wbctx.lineWidth = 1;
+        wbctx.beginPath(); wbctx.moveTo(75, y+4); wbctx.lineTo(75, y+20); wbctx.stroke();
+        wbctx.fillStyle = '#aaa'; wbctx.font = '10px serif';
+        wbctx.fillText('▼', 69, y+18);
+      }
+    });
+    // 中间分隔线
+    wbctx.strokeStyle = '#ddd'; wbctx.lineWidth = 1;
+    wbctx.beginPath(); wbctx.moveTo(250, 55); wbctx.lineTo(250, 340); wbctx.stroke();
+    // 右侧: 便利贴区域
+    wbctx.fillStyle = '#e65100'; wbctx.font = 'bold 14px serif';
+    wbctx.fillText('📌 关键问题', 270, 75);
+    const stickies = [
+      {text:'如何证明\n创新性?', x:265, y:90, c:'#fff9c4'},
+      {text:'审稿人\n会质疑?', x:380, y:88, c:'#ffe0b2'},
+      {text:'实验\n可复现?', x:265, y:155, c:'#e1f5fe'},
+      {text:'数据量\n足够吗?', x:380, y:150, c:'#f3e5f5'},
+      {text:'Deadline\n还有30天', x:265, y:218, c:'#ffcdd2'},
+      {text:'导师说\n再改一版', x:380, y:215, c:'#ffebee'},
+    ];
+    stickies.forEach(s => {
+      wbctx.fillStyle = s.c; wbctx.fillRect(s.x, s.y, 95, 55);
+      wbctx.strokeStyle = '#ccc'; wbctx.lineWidth = 0.5;
+      wbctx.strokeRect(s.x, s.y, 95, 55);
+      wbctx.fillStyle = '#333'; wbctx.font = '11px serif';
+      const lines = s.text.split('\n');
+      lines.forEach((l,li) => wbctx.fillText(l, s.x+8, s.y+18+li*16));
+    });
+    // 下方: 进度条
+    wbctx.fillStyle = '#2c3e50'; wbctx.font = 'bold 12px serif';
+    wbctx.fillText('当前进度', 30, 310);
+    wbctx.strokeStyle = '#aaa'; wbctx.lineWidth = 1;
+    wbctx.strokeRect(120, 300, 200, 14);
+    wbctx.fillStyle = '#4caf50'; wbctx.fillRect(120, 300, 130, 14);
+    wbctx.fillStyle = '#333'; wbctx.font = '11px serif';
+    wbctx.fillText('65%', 205, 311);
+    wbctx.fillStyle = '#999'; wbctx.font = '10px serif';
+    wbctx.fillText('预计下月投稿', 340, 311);
+    // 右下角签名
+    wbctx.fillStyle = '#bbb'; wbctx.font = 'italic 11px serif';
+    wbctx.fillText('— 每天进步一点点 —', 360, 340);
     const wbTex = new THREE.CanvasTexture(wbCanvas);
     wbTex.colorSpace = THREE.SRGBColorSpace;
-    const whiteboard = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.5), new THREE.MeshBasicMaterial({map:wbTex}));
+    const whiteboard = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.75), new THREE.MeshBasicMaterial({map:wbTex}));
     whiteboard.position.set(-1.5, 1.8, totalZ-0.2); whiteboard.rotation.y = Math.PI; add(R, whiteboard);
     // 暖光
     add(R, new THREE.PointLight('#ffe4c4', 10, 8, 2)).position.set(0, WH3-0.5, Z3+2);
@@ -1783,14 +1841,14 @@
     papers.position.set(-0.9, 0, 0); labTable.add(papers);
     // 笔记本
     const labLt = new THREE.Group();
-    const ltBase = box(0.35, 0.02, 0.25, new THREE.MeshStandardMaterial({color:'#c0c0c0', roughness:0.2, metalness:0.8}));
+    const ltBase = box(0.50, 0.03, 0.35, new THREE.MeshStandardMaterial({color:'#c0c0c0', roughness:0.2, metalness:0.8}));
     ltBase.position.y = 0.84; labLt.add(ltBase);
-    const ltScr = box(0.35, 0.22, 0.02, new THREE.MeshStandardMaterial({color:'#a0a0a0', roughness:0.2, metalness:0.6}));
-    ltScr.position.set(0, 0.96, -0.1); ltScr.rotation.x = -0.3; labLt.add(ltScr);
-    const ltScrTex = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.18), new THREE.MeshBasicMaterial({color:'#1a1a3a'}));
-    ltScrTex.position.set(0, 0.96, -0.11); ltScrTex.rotation.x = -0.3; labLt.add(ltScrTex);
-    labLt.position.set(0.7, 0, 0); labTable.add(labLt);
-    // 台式显示器 (左侧)
+    const ltScr = box(0.50, 0.32, 0.03, new THREE.MeshStandardMaterial({color:'#a0a0a0', roughness:0.2, metalness:0.6}));
+    ltScr.position.set(0, 0.97, -0.14); ltScr.rotation.x = -0.3; labLt.add(ltScr);
+    const ltScrTex = new THREE.Mesh(new THREE.PlaneGeometry(0.44, 0.26), new THREE.MeshBasicMaterial({color:'#1a1a3a'}));
+    ltScrTex.position.set(0, 0.97, -0.15); ltScrTex.rotation.x = -0.3; labLt.add(ltScrTex);
+    labLt.position.set(0, 0, 0); labTable.add(labLt);
+    // 台式显示器 (右侧)
     const monitorGrp = new THREE.Group();
     const monBase = box(0.2, 0.03, 0.18, new THREE.MeshStandardMaterial({color:'#222', roughness:0.3}));
     monBase.position.y = 0.84; monitorGrp.add(monBase);
@@ -1806,7 +1864,7 @@
       const codeLn = box(0.35 - ci*0.04, 0.015, 0.01, new THREE.MeshBasicMaterial({color:codeColors[ci]}));
       codeLn.position.set(-0.05, 1.04 + ci*0.05, -0.04); monitorGrp.add(codeLn);
     }
-    monitorGrp.position.set(0, 0, 0); monitorGrp.rotation.y = Math.PI; labTable.add(monitorGrp);
+    monitorGrp.position.set(0.7, 0, 0); monitorGrp.rotation.y = Math.PI; labTable.add(monitorGrp);
     // 咖啡杯
     const tCup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.09, 8), new THREE.MeshStandardMaterial({color:'#333', roughness:0.3}));
     tCup.position.set(-0.5, 0.88, -0.2); labTable.add(tCup);
@@ -1866,24 +1924,102 @@
     cmBody.position.y = 0.5; coffeeMachine.add(cmBody);
     const cmTop = box(0.55, 0.05, 0.4, new THREE.MeshStandardMaterial({color:'#333', roughness:0.2, metalness:0.7}));
     cmTop.position.y = 1.03; coffeeMachine.add(cmTop);
-    const cmTank = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.55, 12), new THREE.MeshStandardMaterial({color:'#aaddff', roughness:0.1, transparent:true, opacity:0.5}));
-    cmTank.position.y = 0.65; coffeeMachine.add(cmTank);
+    const cmTank = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.30, 12), new THREE.MeshStandardMaterial({color:'#aaddff', roughness:0.1, transparent:true, opacity:0.45}));
+    cmTank.position.y = 1.25; coffeeMachine.add(cmTank);
     const cmSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.1, 8), new THREE.MeshStandardMaterial({color:'#555', roughness:0.3, metalness:0.8}));
     cmSpout.position.set(0, 0.30, 0.2); cmSpout.rotation.x = Math.PI/2; coffeeMachine.add(cmSpout);
     const cmNozzle = box(0.08, 0.03, 0.12, new THREE.MeshStandardMaterial({color:'#444', roughness:0.3, metalness:0.8}));
     cmNozzle.position.set(0, 0.22, 0.26); coffeeMachine.add(cmNozzle);
     // 接水托盘
     const cmTray = box(0.45, 0.02, 0.3, new THREE.MeshStandardMaterial({color:'#555', roughness:0.3, metalness:0.6}));
-    cmTray.position.set(0, 0.18, 0.3); coffeeMachine.add(cmTray);
-    // 咖啡壶
-    const cmPot = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.11, 0.3, 12), new THREE.MeshStandardMaterial({color:'#e8e0d0', roughness:0.3}));
-    cmPot.position.set(0.25, 1.1, 0.1); coffeeMachine.add(cmPot);
-    // 杯子 ×3
-    for (let cc = -1; cc <= 1; cc++) {
-      const ccCup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.1, 8), new THREE.MeshStandardMaterial({color:'#f5f0e8', roughness:0.3}));
-      ccCup.position.set(cc*0.14, 1.08, 0.28); coffeeMachine.add(ccCup);
+    cmTray.position.set(0, 0.22, 0.18); coffeeMachine.add(cmTray);
+    // 咖啡壶(带把手)
+    const cmPot = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.10, 0.28, 12), new THREE.MeshStandardMaterial({color:'#555', roughness:0.3, metalness:0.6}));
+    cmPot.position.set(0.25, 1.1, 0.05); coffeeMachine.add(cmPot);
+    const cmPotHandle = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.015, 8, 8, Math.PI), new THREE.MeshStandardMaterial({color:'#444', roughness:0.3, metalness:0.6}));
+    cmPotHandle.position.set(0.34, 1.08, 0.05); cmPotHandle.rotation.z = Math.PI/2; coffeeMachine.add(cmPotHandle);
+    // 杯子 ×2 (左右各一，避开水箱)
+    for (let cc = -1; cc <= 1; cc+=2) {
+      const ccCup = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.035, 0.08, 8), new THREE.MeshStandardMaterial({color:'#f5f0e8', roughness:0.3}));
+      ccCup.position.set(cc*0.17, 1.07, -0.10); coffeeMachine.add(ccCup);
     }
     coffeeMachine.position.set(W/2 - 1.2, 0.02, Z3 + 3.5); coffeeMachine.rotation.y = -Math.PI/2; add(R, coffeeMachine);
+
+    // ===== 绿化盆栽 (咖啡机旁) =====
+    const plantPot = new THREE.Group();
+    const ppPot = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.12, 0.35, 12), new THREE.MeshStandardMaterial({color:'#c67b4b', roughness:0.6}));
+    ppPot.position.y = 0.17; plantPot.add(ppPot);
+    const ppRim = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.02, 8, 12), new THREE.MeshStandardMaterial({color:'#b5653a', roughness:0.5}));
+    ppRim.position.y = 0.35; plantPot.add(ppRim);
+    const ppSoil = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.04, 12), new THREE.MeshStandardMaterial({color:'#3a2a1a', roughness:0.8}));
+    ppSoil.position.y = 0.36; plantPot.add(ppSoil);
+    const leafMat = new THREE.MeshStandardMaterial({color:'#4a8c3f', roughness:0.5});
+    const leafMat2 = new THREE.MeshStandardMaterial({color:'#5ea550', roughness:0.5});
+    const leafMat3 = new THREE.MeshStandardMaterial({color:'#3d7a33', roughness:0.5});
+    for (let pl = 0; pl < 12; pl++) {
+      const angle = (pl / 12) * Math.PI * 2 + 0.2;
+      const radius = 0.04 + Math.random() * 0.06;
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.07, 5, 4), pl % 3 === 0 ? leafMat : (pl % 3 === 1 ? leafMat2 : leafMat3));
+      leaf.position.set(Math.cos(angle) * radius, 0.42 + Math.random() * 0.25, Math.sin(angle) * radius);
+      leaf.scale.set(0.6 + Math.random() * 0.4, 0.4 + Math.random() * 0.3, 0.6 + Math.random() * 0.4);
+      plantPot.add(leaf);
+    }
+    const ppStem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.3, 8), new THREE.MeshStandardMaterial({color:'#5a7a3a', roughness:0.6}));
+    ppStem.position.y = 0.45; plantPot.add(ppStem);
+    plantPot.position.set(W/2 - 2.8, 0.02, Z3 + 4); add(R, plantPot);
+
+    // ===== 绿化盆栽2 (书架旁) =====
+    const plantPot2 = new THREE.Group();
+    const pp2Pot = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.10, 0.28, 12), new THREE.MeshStandardMaterial({color:'#c67b4b', roughness:0.6}));
+    pp2Pot.position.y = 0.14; plantPot2.add(pp2Pot);
+    const pp2Rim = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.015, 8, 12), new THREE.MeshStandardMaterial({color:'#b5653a', roughness:0.5}));
+    pp2Rim.position.y = 0.28; plantPot2.add(pp2Rim);
+    const pp2Soil = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.03, 12), new THREE.MeshStandardMaterial({color:'#3a2a1a', roughness:0.8}));
+    pp2Soil.position.y = 0.29; plantPot2.add(pp2Soil);
+    for (let pl = 0; pl < 8; pl++) {
+      const angle = (pl / 8) * Math.PI * 2;
+      const r = 0.03 + Math.random() * 0.04;
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.06, 5, 4), pl % 2 === 0 ? leafMat2 : leafMat);
+      leaf.position.set(Math.cos(angle) * r, 0.35 + Math.random() * 0.2, Math.sin(angle) * r);
+      plantPot2.add(leaf);
+    }
+    plantPot2.position.set(W/2 - 3.2, 0.02, Z3 + 4.2); add(R, plantPot2);
+
+    // ===== 折叠床 (长桌左侧) =====
+    const foldBed = new THREE.Group();
+    const fbDark = new THREE.MeshStandardMaterial({color:'#3a3a3a', roughness:0.4, metalness:0.8});
+    // 四条支撑腿 (加高可见)
+    for (let fbx = -1; fbx <= 1; fbx+=2) {
+      for (let fbz = -1; fbz <= 1; fbz+=2) {
+        const fbLeg = box(0.05, 0.28, 0.05, fbDark);
+        fbLeg.position.set(fbx*0.43, 0.14, fbz*0.93); foldBed.add(fbLeg);
+      }
+    }
+    // 底部加强横杆 (前后)
+    for (let fbe = -1; fbe <= 1; fbe+=2) {
+      const fbEnd = box(0.9, 0.04, 0.05, fbDark);
+      fbEnd.position.set(0, 0.03, fbe*0.93); foldBed.add(fbEnd);
+    }
+    // 底部加强纵杆 (左右)
+    for (let fbs = -1; fbs <= 1; fbs+=2) {
+      const fbSide = box(0.05, 0.04, 1.9, fbDark);
+      fbSide.position.set(fbs*0.43, 0.03, 0); foldBed.add(fbSide);
+    }
+    // 中间横杆 ×3
+    for (let fbc of [-0.5, 0, 0.5]) {
+      const fbBar = box(0.84, 0.03, 0.04, fbDark);
+      fbBar.position.set(0, 0.03, fbc); foldBed.add(fbBar);
+    }
+    // 床垫
+    const fbMattress = box(0.88, 0.1, 1.9, new THREE.MeshStandardMaterial({color:'#4a6fa5', roughness:0.7}));
+    fbMattress.position.set(0, 0.35, 0); foldBed.add(fbMattress);
+    // 枕头
+    const fbPillow = box(0.5, 0.1, 0.35, new THREE.MeshStandardMaterial({color:'#d5e0f0', roughness:0.6}));
+    fbPillow.position.set(0, 0.4, -0.73); foldBed.add(fbPillow);
+    // 薄被 (折叠在脚部)
+    const fbBlanket = box(0.78, 0.06, 0.65, new THREE.MeshStandardMaterial({color:'#8fa8c8', roughness:0.7}));
+    fbBlanket.position.set(0, 0.38, 0.55); foldBed.add(fbBlanket);
+    foldBed.position.set(-W/2 + 2, 0.02, Z3 + 3); foldBed.rotation.y = 0; add(R, foldBed);
 
     // ===== 隔墙 =====
     function dividerWall(dz, mat, wh) {
@@ -2612,14 +2748,18 @@
       // 重置角色位置到新场景入口
       if (target === 'corridor') {
         player.position.set(0, 0, 2.5);
+        player.moveAngle = 0;
+        cameraAngle = 0;
       } else if (target === 'present') {
         player.position.set(0, 0, 3.5);
+        player.moveAngle = 0;
+        cameraAngle = 0;
       } else {
         player.position.set(0, 0, 0.8);
+        player.moveAngle = Math.PI;
+        cameraAngle = Math.PI;
       }
       character.position.copy(player.position);
-      player.moveAngle = Math.PI;
-      cameraAngle = Math.PI;
       cameraPitch = 0.5;
 
       // 淡入
