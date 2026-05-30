@@ -2112,10 +2112,112 @@
       const gStr = box(0.012, 0.6, 0.008, new THREE.MeshStandardMaterial({color:'#e8e0d0', roughness:0.2, metalness:0.7}));
       gStr.position.set(gs*0.016, 0.78, 0.022); guitar.add(gStr);
     }
-    guitar.position.set(-W/2 + 2.8, 0.02, Z3 + 2.2);
-    guitar.rotation.z = 0.45;
-    guitar.rotation.y = -0.25;
+    guitar.position.set(-W/2 + 0.6, 0.02, Z3);
+    guitar.rotation.z = -0.3;
+    guitar.rotation.y = Math.PI / 2;
     add(R, guitar);
+
+    // ===== 衣帽架 (右墙前部) =====
+    const coatRack = new THREE.Group();
+    const crPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.6, 8), new THREE.MeshStandardMaterial({color:'#4a3520', roughness:0.4}));
+    crPole.position.y = 0.8; coatRack.add(crPole);
+    const crBase = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 0.06, 12), new THREE.MeshStandardMaterial({color:'#3a2510', roughness:0.5}));
+    crBase.position.y = 0.03; coatRack.add(crBase);
+    for (let hi = 0; hi < 4; hi++) {
+      const hook = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.12, 6), new THREE.MeshStandardMaterial({color:'#555', roughness:0.2, metalness:0.6}));
+      hook.position.set(0, 1.5 - hi * 0.12, 0.06); hook.rotation.x = Math.PI / 2; coatRack.add(hook);
+    }
+    const coatBody = box(0.35, 0.6, 0.04, new THREE.MeshStandardMaterial({color:'#2a4a6a', roughness:0.6}));
+    coatBody.position.set(0.1, 1.1, 0.06); coatRack.add(coatBody);
+    for (let cs = -1; cs <= 1; cs += 2) {
+      const sleeve = box(0.06, 0.35, 0.04, new THREE.MeshStandardMaterial({color:'#2a4a6a', roughness:0.6}));
+      sleeve.position.set(0.28, 1.25, cs * 0.08); sleeve.rotation.z = cs * 0.3; coatRack.add(sleeve);
+    }
+    coatRack.position.set(W/2 - 0.5, 0.02, Z3 + 2.5);
+    add(R, coatRack);
+
+    // ===== 饮水机 (左墙，自由段前部) =====
+    const waterDispenser = new THREE.Group();
+    const wdBody = box(0.32, 0.8, 0.28, new THREE.MeshStandardMaterial({color:'#f0f0f0', roughness:0.3}));
+    wdBody.position.y = 0.4; waterDispenser.add(wdBody);
+    const wdBottle = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.4, 12), new THREE.MeshStandardMaterial({color:'#3388cc', roughness:0.15, transparent:true, opacity:0.6}));
+    wdBottle.position.y = 1.0; waterDispenser.add(wdBottle);
+    const wdCap = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.05, 8), new THREE.MeshStandardMaterial({color:'#2266aa', roughness:0.2}));
+    wdCap.position.y = 1.22; waterDispenser.add(wdCap);
+    const wdTap = box(0.06, 0.04, 0.06, new THREE.MeshStandardMaterial({color:'#cc3333', roughness:0.3}));
+    wdTap.position.set(0, 0.6, 0.16); waterDispenser.add(wdTap);
+    const wdDrip = box(0.15, 0.02, 0.12, new THREE.MeshStandardMaterial({color:'#555', roughness:0.4}));
+    wdDrip.position.set(0, 0.25, 0.16); waterDispenser.add(wdDrip);
+    waterDispenser.position.set(-W/2 + 0.4, 0.02, Z3 - 4);
+    add(R, waterDispenser);
+
+    // ===== 垃圾桶 (右墙，自由段前部) =====
+    const wasteBin = new THREE.Group();
+    const wbBody = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.14, 0.45, 12), new THREE.MeshStandardMaterial({color:'#3a3a3a', roughness:0.5}));
+    wbBody.position.y = 0.23; wasteBin.add(wbBody);
+    const wbRim = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.015, 6, 12), new THREE.MeshStandardMaterial({color:'#444', roughness:0.3}));
+    wbRim.position.y = 0.45; wasteBin.add(wbRim);
+    const wbBag = box(0.02, 0.08, 0.02, new THREE.MeshStandardMaterial({color:'#111', roughness:0.8}));
+    wbBag.position.set(0.1, 0.48, 0.05); wasteBin.add(wbBag);
+    wasteBin.position.set(-W/2 + 0.4, 0.02, Z3 - 3);
+    add(R, wasteBin);
+
+    // ===== 快递盒堆 (左墙，自由段后部) =====
+    const packagePile = new THREE.Group();
+    const pkgColors = ['#c4956a', '#b8845a', '#d4a574', '#a0704a'];
+    for (let pi = 0; pi < 4; pi++) {
+      const pw = 0.2 + Math.random() * 0.15;
+      const ph = 0.1 + Math.random() * 0.12;
+      const pd = 0.15 + Math.random() * 0.15;
+      const pkg = box(pw, ph, pd, new THREE.MeshStandardMaterial({color:pkgColors[pi], roughness:0.6}));
+      pkg.position.set(Math.random() * 0.1 - 0.05, 0.04 + pi * 0.1, Math.random() * 0.1 - 0.05);
+      pkg.rotation.y = Math.random() * 0.5;
+      packagePile.add(pkg);
+    }
+    const tape = box(0.22, 0.01, 0.17, new THREE.MeshStandardMaterial({color:'#e8d8c0', roughness:0.3}));
+    tape.position.set(0, 0.25, 0); packagePile.add(tape);
+    packagePile.position.set(W/2 - 0.5, 0.02, Z3 + 3.5);
+    add(R, packagePile);
+
+    // ===== 全身镜 (左墙，床前方) =====
+    const fullMirror = new THREE.Group();
+    const fmMat = new THREE.MeshStandardMaterial({color:'#5a3a1a', roughness:0.3});
+    const fmL = box(0.03, 1.7, 0.04, fmMat); fmL.position.set(-0.21, 0.85, 0); fullMirror.add(fmL);
+    const fmR = box(0.03, 1.7, 0.04, fmMat); fmR.position.set(0.21, 0.85, 0); fullMirror.add(fmR);
+    const fmT = box(0.45, 0.03, 0.04, fmMat); fmT.position.set(0, 1.7, 0); fullMirror.add(fmT);
+    const fmB = box(0.45, 0.03, 0.04, fmMat); fmB.position.set(0, 0, 0); fullMirror.add(fmB);
+    const fmGlass = new THREE.Mesh(new THREE.PlaneGeometry(0.39, 1.64), new THREE.MeshStandardMaterial({color:'#c8d8e8', roughness:0.05, metalness:0.9}));
+    fmGlass.position.set(0, 0.85, 0.021); fullMirror.add(fmGlass);
+    const fmBase = box(0.35, 0.04, 0.2, fmMat); fmBase.position.set(0, -0.02, -0.08); fullMirror.add(fmBase);
+    const fmStand = box(0.08, 1.4, 0.08, fmMat); fmStand.position.set(0, 0.7, -0.08); fmStand.rotation.x = -0.15; fullMirror.add(fmStand);
+    fullMirror.position.set(-W/2 + 0.5, 0.02, Z3 - 1.5);
+    fullMirror.rotation.y = Math.PI / 2;
+    add(R, fullMirror);
+
+    // ===== 行李箱 (左墙，毕业回家) =====
+    const luggage = new THREE.Group();
+    const lugBody = box(0.45, 0.65, 0.28, new THREE.MeshStandardMaterial({color:'#2a4a6a', roughness:0.4}));
+    lugBody.position.y = 0.35; luggage.add(lugBody);
+    const lugTop = box(0.45, 0.08, 0.28, new THREE.MeshStandardMaterial({color:'#1a3a5a', roughness:0.4}));
+    lugTop.position.y = 0.69; luggage.add(lugTop);
+    const lugHandle = box(0.04, 0.25, 0.04, new THREE.MeshStandardMaterial({color:'#333', roughness:0.3}));
+    lugHandle.position.set(0, 0.82, 0.12); luggage.add(lugHandle);
+    const lugHandleBar = box(0.25, 0.03, 0.03, new THREE.MeshStandardMaterial({color:'#222', roughness:0.3}));
+    lugHandleBar.position.set(0, 0.95, 0.12); luggage.add(lugHandleBar);
+    const lugStripe = box(0.46, 0.08, 0.01, new THREE.MeshStandardMaterial({color:'#c0a060', roughness:0.5}));
+    lugStripe.position.set(0, 0.38, 0.145); luggage.add(lugStripe);
+    const lugLock = box(0.06, 0.04, 0.02, new THREE.MeshStandardMaterial({color:'#ffd700', roughness:0.2, metalness:0.8}));
+    lugLock.position.set(0, 0.45, 0.145); luggage.add(lugLock);
+    for (let lx = -1; lx <= 1; lx += 2) {
+      for (let lz = -1; lz <= 1; lz += 2) {
+        const lugWheel = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12), new THREE.MeshStandardMaterial({color:'#222', roughness:0.6}));
+        lugWheel.rotation.z = Math.PI / 2;
+        lugWheel.position.set(lx * 0.18, 0.05, lz * 0.1); luggage.add(lugWheel);
+      }
+    }
+    luggage.position.set(-W/2 + 1.8, 0.02, Z3 - 0.5);
+    luggage.rotation.y = 0.15;
+    add(R, luggage);
 
     // ===== 泡面杯+零食堆 =====
     const snackGrp = new THREE.Group();
@@ -2286,9 +2388,19 @@
     loftMonScreen.position.set(monX + 0.01, 1.0, monZ);
     loftMonScreen.rotation.y = Math.PI / 2;
     loftDesk.add(loftMonScreen);
+    const monGlow = new THREE.PointLight('#335577', 1.5, 1.2, 2);
+    monGlow.position.set(monX + 0.06, 1.0, monZ);
+    loftDesk.add(monGlow);
     const loftKb = box(0.07, 0.012, 0.22, new THREE.MeshStandardMaterial({color:'#333', roughness:0.4}));
     loftKb.position.set(monX - 0.05, 0.81, monZ);
     loftDesk.add(loftKb);
+    const powerStrip = box(0.22, 0.028, 0.06, new THREE.MeshStandardMaterial({color:'#e8e8e8', roughness:0.3}));
+    powerStrip.position.set(0.28, 0.04, deskDHalf - 0.15);
+    loftDesk.add(powerStrip);
+    const psCord = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.25, 6), new THREE.MeshStandardMaterial({color:'#333', roughness:0.5}));
+    psCord.position.set(0.36, 0.04, deskDHalf - 0.15);
+    psCord.rotation.z = Math.PI / 2;
+    loftDesk.add(psCord);
     loftDesk.position.set(0, 0.02, -0.15);
     loftBed.add(loftDesk);
     // 椅子 (面向书桌，朝向房间中心)
@@ -2364,6 +2476,18 @@
     }
     loftChair.position.set(-bwHalf - 0.06, 0.02, monZ);
     loftDesk.add(loftChair);
+    const storageBox = box(0.38, 0.28, 0.3, new THREE.MeshStandardMaterial({color:'#5a8a6a', roughness:0.5}));
+    storageBox.position.set(-0.52, 0.14, 0.55);
+    loftBed.add(storageBox);
+    const storageLid = box(0.4, 0.03, 0.32, new THREE.MeshStandardMaterial({color:'#4a7a5a', roughness:0.4}));
+    storageLid.position.set(-0.52, 0.3, 0.55);
+    loftBed.add(storageLid);
+    const suitcase = box(0.42, 0.2, 0.26, new THREE.MeshStandardMaterial({color:'#3a5a7a', roughness:0.35}));
+    suitcase.position.set(-0.52, 0.1, 0.15);
+    loftBed.add(suitcase);
+    const suitcaseHandle = box(0.06, 0.04, 0.16, new THREE.MeshStandardMaterial({color:'#222', roughness:0.3}));
+    suitcaseHandle.position.set(-0.52, 0.23, 0.15);
+    loftBed.add(suitcaseHandle);
     loftBed.position.set(W/2 - 0.55, 0.02, Z3 - 2);
     loftBed.scale.set(1.25, 1.25, 1.25);
     add(R, loftBed);
