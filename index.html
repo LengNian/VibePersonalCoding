@@ -410,6 +410,128 @@
     transition: all 0.5s;
   }
 
+  /* ---- 发现计数器 ---- */
+  .discovery-counter {
+    position: absolute;
+    top: 80px;
+    right: 30px;
+    color: rgba(201,169,110,0.7);
+    font-size: 13px;
+    letter-spacing: 2px;
+    pointer-events: none;
+    font-family: 'Noto Serif SC', serif;
+    transition: all 0.4s;
+  }
+  .discovery-counter.pop {
+    color: var(--gold-light);
+    transform: scale(1.3);
+  }
+
+  /* ---- 全收集完成弹窗 ---- */
+  .completion-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: rgba(4,2,2,0.94);
+    backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+  }
+  .completion-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .completion-card {
+    background: linear-gradient(160deg, #1a1208 0%, #241a0c 30%, #1a1008 60%, #0f0a04 100%);
+    border: 2px solid rgba(201,169,110,0.45);
+    box-shadow: 0 0 100px rgba(201,169,110,0.15), 0 0 200px rgba(180,140,60,0.06), 0 30px 80px rgba(0,0,0,0.8);
+    padding: 56px 44px 48px;
+    max-width: 520px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    transform: translateY(30px) scale(0.94);
+    transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .completion-overlay.active .completion-card {
+    transform: translateY(0) scale(1);
+  }
+  .completion-icon {
+    font-size: 56px;
+    margin-bottom: 20px;
+    animation: completionFloat 3s ease-in-out infinite;
+  }
+  @keyframes completionFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .completion-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 28px;
+    color: var(--gold-light);
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .completion-subtitle {
+    color: rgba(201,169,110,0.65);
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 32px;
+    font-family: 'Noto Serif SC', serif;
+  }
+  .completion-text {
+    color: var(--text);
+    font-size: 15px;
+    line-height: 2;
+    letter-spacing: 0.5px;
+    margin-bottom: 28px;
+  }
+  .completion-text p { margin-bottom: 10px; }
+  .completion-email {
+    display: inline-block;
+    color: var(--gold-light);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 10px 24px;
+    border: 1px solid rgba(201,169,110,0.35);
+    border-radius: 2px;
+    margin: 8px 0;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  .completion-email:hover {
+    border-color: var(--gold-light);
+    background: rgba(201,169,110,0.1);
+    color: #fff;
+  }
+  .completion-close {
+    position: absolute;
+    top: 14px; right: 18px;
+    background: none;
+    border: 1px solid rgba(201,169,110,0.25);
+    color: var(--gold-light);
+    font-size: 18px;
+    width: 32px; height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: serif;
+    border-radius: 2px;
+  }
+  .completion-close:hover {
+    border-color: var(--gold-light);
+    background: rgba(201,169,110,0.12);
+    color: #fff;
+  }
+
   /* ---- 响应式 ---- */
   @media (max-width: 768px) {
     .cursor { display: none; }
@@ -438,6 +560,7 @@
     <div class="interact-hint" id="interactHint">按 F 查看</div>
     <div class="controls-help">WASD 移动 | 空格跳跃 | 鼠标360°视角 | E 进门 | F 查看展品 | 1晴 2雨 3雪 4夜</div>
     <div class="weather-indicator" id="weatherIndicator">☀️</div>
+    <div class="discovery-counter" id="discoveryCounter">🔍 0 / 0</div>
   </div>
 
   <div class="transition-overlay" id="transitionOverlay"></div>
@@ -474,6 +597,23 @@
       <button class="modal-close" id="modalClose">&times;</button>
       <h2 class="modal-title" id="modalTitle"></h2>
       <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- 全收集完成弹窗 -->
+  <div class="completion-overlay" id="completionOverlay">
+    <div class="completion-card">
+      <button class="completion-close" id="completionClose">&times;</button>
+      <div class="completion-icon">🏆</div>
+      <h2 class="completion-title">全部展品收集完毕</h2>
+      <div class="completion-subtitle">COLLECTION COMPLETE</div>
+      <div class="completion-text">
+        <p>恭喜你，探索者！</p>
+        <p>你已发现了时光博物馆中的<b>每一件</b>展品——从童年的蜡笔画到未来的星空，从教室里的钢琴到馆长桌上的手记。</p>
+        <p>感谢你用心走完这段旅程。记忆因为被看见而发光，就像每一件展品因为你而有了意义。</p>
+        <p>如果你有任何建议、想法，或想分享你的故事，<br>欢迎给馆长发邮件：</p>
+      </div>
+      <a class="completion-email" href="mailto:weisj_ln@163.com">📬 weisj_ln@163.com</a>
     </div>
   </div>
 
@@ -1504,6 +1644,7 @@
     wall(R, W/2, Z1, 0.3, WH1, D1, w1Mat);
     // 入口墙
     wall(R, 0, 0, W+0.6, WH1, 0.3, w1Mat);
+
     // ===== 黑板 (入口墙上方) =====
     // 黑板实体 (深绿色, 突出墙面)
     const chalkboard=box(3.5,1.8,0.15,new THREE.MeshStandardMaterial({color:'#2a4a2a',roughness:0.6}));
@@ -1890,16 +2031,16 @@
         student.rotation.y = Math.PI;
         add(R, student);
         addCollider(R, dx, dz + 0.2, 0.6, 0.6);  // 中学生碰撞
-        
-        // 晚自习交互
-        const studentInteract = new THREE.Mesh(new THREE.BoxGeometry(1, 1.8, 0.8), new THREE.MeshBasicMaterial({visible:false}));
-        studentInteract.position.set(dx, 0.9, dz + 0.2);
-        addInteractable(R, studentInteract, {
-          type:'exhibit', title:'晚自习时光',
-          content:'<p>晚自习的教室里很安静，只有笔尖划过纸张的沙沙声。</p><p>同学们都在埋头苦读，偶尔抬头看一眼黑板上的倒计时。</p><p>这些并肩奋斗的日子，是青春最深刻的印记。</p>'
-        });
       }
     }
+
+    // 晚自习区域交互 (整个教室统一)
+    const nightStudyInt = new THREE.Mesh(new THREE.BoxGeometry(7, 2, 8), new THREE.MeshBasicMaterial({visible:false}));
+    nightStudyInt.position.set(0, 1, D1 + 4.5);
+    addInteractable(R, nightStudyInt, {
+      type:'exhibit', title:'晚自习时光',
+      content:'<p>晚自习的教室里很安静，只有笔尖划过纸张的沙沙声。</p><p>同学们都在埋头苦读，偶尔抬头看一眼黑板上的倒计时。</p><p>这些并肩奋斗的日子，是青春最深刻的印记。</p>'
+    });
 
     // ===== 倒计时牌 (右侧墙上) =====
     const countdownCanvas = document.createElement('canvas');
@@ -2063,7 +2204,7 @@
     
     const goalInteract = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.8, 8), new THREE.MeshBasicMaterial({visible:false}));
     goalInteract.position.set(-W/2 + 0.2, 2.8, D1 + 5);
-    addInteractable(R, goalInteract, {type:'exhibit', title:'目标墙', content:'<p>便利贴上写满了同学们的目标：</p><p>有人想考清华北大，有人想当医生、老师...</p><p>那时候觉得梦想很大，大到可以装下整个世界。</p>'});
+    addInteractable(R, goalInteract, {type:'exhibit', title:'目标与错题墙', content:'<p>便利贴上写满了同学们的目标：有人想考清华北大，有人想当医生、老师……那时候觉得梦想很大，大到可以装下整个世界。</p><p>旁边的红榜上贴着每次考试的错题整理。红色的叉号、绿色的解析——那些曾经做错的题，后来都成了最深刻的记忆。</p>'});
     
     // ===== 光荣榜1 (右侧墙前方) =====
     const honorCanvas1 = document.createElement('canvas');
@@ -2178,10 +2319,6 @@
     wrongWall.rotation.y = Math.PI/2;
     add(R, wrongWall);
     
-    const wrongInteract = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.8, 8), new THREE.MeshBasicMaterial({visible:false}));
-    wrongInteract.position.set(-W/2 + 0.2, 0.8, D1 + 5);
-    addInteractable(R, wrongInteract, {type:'exhibit', title:'错题墙', content:'<p>每次考试后的错题整理，是进步的阶梯。</p><p>红色的叉号，绿色的解析。</p><p>那些曾经做错的题，后来都成了最深刻的记忆。</p>'});
-
     // ===== 房间3: 大学 — 自由探索 =====
     const WH3 = 3.5;
     const fl3 = box(W, 0.12, D3, new THREE.MeshStandardMaterial({color:'#d8c8b0', roughness:0.5})); fl3.position.set(0,-0.08,Z3); add(R,fl3);
@@ -2580,7 +2717,7 @@
     const fbBlanket = box(0.78, 0.06, 0.65, new THREE.MeshStandardMaterial({color:'#8fa8c8', roughness:0.7}));
     fbBlanket.position.set(0, 0.38, 0.55); foldBed.add(fbBlanket);
     foldBed.position.set(-W/2 + 2, 0.02, Z3 + 3); foldBed.rotation.y = 0; add(R, foldBed);
-    addCollider(R, -W/2 + 2, Z3 + 3, 2.2, 0.9);  // 折叠床碰撞检测
+    addCollider(R, -W/2 + 2, Z3 + 3, 1.2, 0.7);  // 折叠床碰撞检测
     
     // 折叠床交互 (熬夜实验)
     const foldBedInteract = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.0, 1.2), new THREE.MeshBasicMaterial({visible:false}));
@@ -2612,9 +2749,6 @@
     add(R, guitar);
     addCollider(R, -W/2 + 0.6, Z3, 0.4, 1.2);  // 吉他碰撞检测
 
-    // 吉他交互
-    const guitarInt=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1),new THREE.MeshBasicMaterial({visible:false}));guitarInt.position.set(-W/2 + 0.6,0.6,Z3);
-    addInteractable(R,guitarInt,{type:'exhibit',title:'老吉他',content:'<p>大三那年省了三个月饭钱买的。学了《小星星》和《同桌的你》，和弦切换总卡壳，但室友们还是给我鼓掌。</p><p>最难的那个期末，深夜复习到崩溃，我放下笔抱起吉他，随便扫了几个和弦——突然就觉得，好像也没什么大不了的。</p><p>音乐不能帮你通过考试，但能帮你熬过那个夜晚。</p>'});
 
     // ===== 衣帽架 (右墙前部) =====
     const coatRack = new THREE.Group();
@@ -2797,13 +2931,8 @@
     add(R, uniFootball);
     addCollider(R, -3.5, D1 + D2 + 2, 0.35, 0.35);  // 足球碰撞检测
 
-    // 体育用品交互 (强身健体)
-    const sportInteract = new THREE.Mesh(new THREE.BoxGeometry(2, 1.5, 1), new THREE.MeshBasicMaterial({visible:false}));
-    sportInteract.position.set(-3, 0.75, D1 + D2 + 1.8);
-    addInteractable(R, sportInteract, {
-      type:'exhibit', title:'强身健体',
-      content:'<p>身体是革命的本钱，大学时光怎能少得了运动？</p><p>篮球场上挥洒汗水，足球场上追逐奔跑，乒乓球台前你来我往。</p><p>强健的体魄，才能支撑起远大的梦想。运动不仅是锻炼，更是释放压力、结交朋友的方式。</p>'
-    });
+
+
 
     // 乒乓球拍 (挂在架子上)
     const pingPongPaddle = new THREE.Group();
@@ -4004,6 +4133,7 @@
     wall(R, SIZE/2, SIZE/2, 0.3, 3.5, SIZE, officeWallMat);
     wall(R, 0, SIZE, SIZE+0.4, 3.5, 0.3, officeWallMat);
     wall(R, 0, 0, SIZE+0.4, 3.5, 0.3, officeWallMat);
+
     const ceil = box(SIZE+0.3, 0.1, SIZE+0.3, new THREE.MeshStandardMaterial({ color:'#3a3028', roughness:0.85 }));
     ceil.position.set(0,3.5, SIZE/2); add(R, ceil);
 
@@ -4031,73 +4161,74 @@
     add(R, officeDesk);
     addCollider(R, 0.5, 3.5, 3.8, 1.2);
 
-    // 台灯 (暖光, 左侧)
+    // 台灯 (暖光, 桌面左侧中央区域)
     const deskLight = new THREE.PointLight('#ffcc88', 9, 5, 2);
-    deskLight.position.set(-1, 1.5, 3);
+    deskLight.position.set(-0.8, 1.5, 3.5);
     add(R, deskLight);
     const dlBase2 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.28, 16), darkMetalMat);
-    dlBase2.position.set(-1, 0.94, 3);
+    dlBase2.position.set(-0.8, 0.94, 3.5);
     add(R, dlBase2);
     const dlShade2 = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.25, 16), new THREE.MeshStandardMaterial({ color:'#e8d5b0', roughness:0.25, emissive:'#ffcc66', emissiveIntensity:0.4 }));
-    dlShade2.position.set(-1, 1.25, 3);
+    dlShade2.position.set(-0.8, 1.25, 3.5);
     add(R, dlShade2);
 
-    // 文件堆 (书桌左侧)
+    // 文件堆 (书桌左侧, 稳稳放在桌面中央区域)
     for (let fi = 0; fi < 3; fi++) {
-      const filePile = box(0.4, 0.04 + fi * 0.03, 0.55, new THREE.MeshStandardMaterial({ color:['#f5ecd8','#e8dcc8','#f0e4d0'][fi], roughness:0.45 }));
-      filePile.position.set(-1.5 + fi * 0.15, 0.81 + fi * 0.03, 3 + (fi - 1) * 0.15);
-      filePile.rotation.set(0, (fi - 1) * 0.15, 0);
+      const fh = 0.04 + fi * 0.03;
+      const filePile = box(0.4, fh, 0.55, new THREE.MeshStandardMaterial({ color:['#f5ecd8','#e8dcc8','#f0e4d0'][fi], roughness:0.45 }));
+      filePile.position.set(-0.8 + fi * 0.15, 0.8 + fh/2, 3.5 + (fi - 1) * 0.1);
+      filePile.rotation.set(0, (fi - 1) * 0.12, 0);
       add(R, filePile);
     }
 
-    // 咖啡杯 (书桌右侧)
+    // 咖啡杯 (书桌右前侧, 稳稳放桌面中间)
     const coffeeCup = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 0.2, 16), new THREE.MeshStandardMaterial({ color:'#e8dcc8', roughness:0.25 }));
-    coffeeCup.position.set(1.2, 0.9, 3.2);
+    coffeeCup.position.set(1.0, 0.9, 3.6);
     add(R, coffeeCup);
     const cupHandle = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.025, 8, 8), new THREE.MeshStandardMaterial({ color:'#e8dcc8', roughness:0.25 }));
-    cupHandle.position.set(1.32, 0.9, 3.2);
+    cupHandle.position.set(1.12, 0.9, 3.6);
     add(R, cupHandle);
     // 咖啡热气
     for (let si = 0; si < 8; si++) {
       const steam = new THREE.Mesh(new THREE.SphereGeometry(0.02, 4), new THREE.MeshBasicMaterial({ color:'#fff', transparent:true, opacity:0.35 }));
-      steam.position.set(1.2 + (Math.random()-0.5)*0.1, 1.05 + Math.random()*0.4, 3.2 + (Math.random()-0.5)*0.1);
+      steam.position.set(1.0 + (Math.random()-0.5)*0.1, 1.05 + Math.random()*0.4, 3.6 + (Math.random()-0.5)*0.1);
       steam.userData.steam = true;
       steam.userData.baseY = steam.position.y;
       add(R, steam);
     }
 
-    // 散落的信件 + 钢笔
+    // 散落的信件 (桌面中央, 稳稳摆放)
     for (let li = 0; li < 5; li++) {
       const letter = box(0.3, 0.02, 0.4, new THREE.MeshStandardMaterial({ color:'#f5ecd8', roughness:0.4 }));
-      letter.position.set(0.5 + (li - 2) * 0.3, 0.81, 3.2 + (Math.random() - 0.5) * 0.4);
-      letter.rotation.set((Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.1);
+      letter.position.set(0.5 + (li - 2) * 0.25, 0.81, 3.6 + (Math.random() - 0.5) * 0.3);
+      letter.rotation.set((Math.random() - 0.5) * 0.15, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.08);
       add(R, letter);
     }
-    // 钢笔
+    // 钢笔 (桌面中央偏右, 稳稳放置)
     const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.35, 8), new THREE.MeshStandardMaterial({ color:'#1a1a2e', roughness:0.3, metalness:0.3 }));
-    pen.position.set(0.8, 0.84, 3.4);
+    pen.position.set(0.6, 0.84, 3.5);
     pen.rotation.x = 0.1;
     pen.rotation.z = 0.3;
     add(R, pen);
-    // 墨水瓶
+    // 墨水瓶 (桌面右侧, 稳稳放在桌面中央区域)
     const ink = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.12, 16), new THREE.MeshStandardMaterial({ color:'#1a1a2e', roughness:0.2, metalness:0.3 }));
-    ink.position.set(1.6, 0.87, 3.2);
+    ink.position.set(1.2, 0.86, 3.5);
     add(R, ink);
 
-    // 地球仪 (左后角落)
+    // 地球仪 (左后墙角)
     const globe = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshStandardMaterial({ color:'#4a7a9a', roughness:0.25, metalness:0.1 }));
-    globe.position.set(-2.5, 1.1, 1.8);
+    globe.position.set(-3.3, 1.1, 0.8);
     add(R, globe);
     const globeStand = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.6, 12), darkMetalMat);
-    globeStand.position.set(-2.5, 0.3, 1.8);
+    globeStand.position.set(-3.3, 0.3, 0.8);
     add(R, globeStand);
     const globeBase = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.1, 16), darkMetalMat);
-    globeBase.position.set(-2.5, 0.05, 1.8);
+    globeBase.position.set(-3.3, 0.05, 0.8);
     add(R, globeBase);
-    addCollider(R, -2.5, 1.8, 1.0, 1.0);  // 地球仪碰撞检测
+    addCollider(R, -3.3, 0.8, 0.5, 0.5);  // 地球仪碰撞检测 (改小)
 
     // 地球仪交互
-    const globeInteract=new THREE.Mesh(new THREE.SphereGeometry(0.7),new THREE.MeshBasicMaterial({visible:false}));globeInteract.position.set(-2.5,1.1,1.8);
+    const globeInteract=new THREE.Mesh(new THREE.SphereGeometry(0.7),new THREE.MeshBasicMaterial({visible:false}));globeInteract.position.set(-3.3,1.1,0.8);
     addInteractable(R,globeInteract,{type:'exhibit',title:'地球仪',content:'<p>铜质的地球仪已经有些泛旧了，但每一条经纬线都清晰可见。</p><p>馆长说这是他在一个旧书店淘来的。他喜欢一边喝着咖啡，一边用手指轻轻拨动球体，想着那些还没去过的地方。</p><p>"你看，世界这么大——而我们记住的，不过是它的一小片。"</p>'});
 
     // 大圆形地毯
@@ -4241,16 +4372,6 @@
       title:'与馆长对话'
     });
 
-    // 墙上照片框
-    const photoFrame = box(1.3, 1.6, 0.06, frameMat);
-    photoFrame.position.set(-3, 2.2, 1.2);
-    add(R, photoFrame);
-    const photoInteract = new THREE.Mesh(new THREE.PlaneGeometry(1, 1.3), new THREE.MeshBasicMaterial({ visible:false }));
-    photoInteract.position.set(-3, 2.2, 1.25);
-    addInteractable(R, photoInteract, {
-      type:'exhibit', title:'馆长照片',
-      content:'<p>这张泛黄的照片里，一个年轻人站在刚建成的博物馆门口，笑容里带着紧张和期待。</p><p>那是我，在一切都还没有开始的时候。那时的我相信，每一个记忆都值得被收藏。</p>'
-    });
 
     // 手册/日记交互 (桌上)
     const journalInteract = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.6), new THREE.MeshBasicMaterial({ visible:false }));
@@ -4270,6 +4391,37 @@
     chandelierLight.position.set(0, 3.3, 4);
     add(R, chandelierLight);
   })();
+
+  // ============================================
+  //  展品发现追踪
+  // ============================================
+  const discoveredExhibits = new Set();
+  let totalExhibits = 0;
+  // 计算总展品数
+  for (const key of Object.keys(scenes)) {
+    for (const ia of scenes[key].interactables) {
+      if (ia.data.type === 'exhibit') totalExhibits++;
+    }
+  }
+  // 发现提示音 (Web Audio 简短叮咚)
+  function playDiscoveryChime() {
+    try {
+      const actx = new (window.AudioContext || window.webkitAudioContext)();
+      const t = actx.currentTime;
+      // 第一个音符
+      const o1 = actx.createOscillator(); const g1 = actx.createGain();
+      o1.type = 'sine'; o1.frequency.value = 880;
+      g1.gain.setValueAtTime(0.15, t); g1.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      o1.connect(g1); g1.connect(actx.destination);
+      o1.start(t); o1.stop(t + 0.25);
+      // 第二个音符 (高一点)
+      const o2 = actx.createOscillator(); const g2 = actx.createGain();
+      o2.type = 'sine'; o2.frequency.value = 1100;
+      g2.gain.setValueAtTime(0.12, t + 0.12); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o2.connect(g2); g2.connect(actx.destination);
+      o2.start(t + 0.12); o2.stop(t + 0.4);
+    } catch(e) {}
+  }
 
   // ============================================
   //  角色系统 (完整人形玩家)
@@ -4657,7 +4809,43 @@
     document.getElementById('modalTitle').textContent = data.title;
     document.getElementById('modalContent').innerHTML = data.content;
     modal.classList.add('active');
+
+    // 发现追踪
+    if (data.title && !discoveredExhibits.has(data.title)) {
+      discoveredExhibits.add(data.title);
+      playDiscoveryChime();
+      updateDiscoveryCounter();
+    }
   }
+
+  function updateDiscoveryCounter() {
+    const counter = document.getElementById('discoveryCounter');
+    counter.textContent = `🔍 ${discoveredExhibits.size} / ${totalExhibits}`;
+    // 弹跳动画
+    counter.classList.add('pop');
+    setTimeout(() => counter.classList.remove('pop'), 400);
+    // 检查是否全部收集
+    checkAllDiscovered();
+  }
+
+  function checkAllDiscovered() {
+    if (discoveredExhibits.size >= totalExhibits && totalExhibits > 0) {
+      setTimeout(() => {
+        document.getElementById('completionOverlay').classList.add('active');
+        playDiscoveryChime(); playDiscoveryChime(); // 双响庆祝
+      }, 800);
+    }
+  }
+
+  // 完成弹窗关闭
+  document.getElementById('completionClose').addEventListener('click', () => {
+    document.getElementById('completionOverlay').classList.remove('active');
+  });
+
+  // 初始化计数器
+  setTimeout(() => {
+    document.getElementById('discoveryCounter').textContent = `🔍 0 / ${totalExhibits}`;
+  }, 2000);
   document.getElementById('modalClose').addEventListener('click', () => {
     document.getElementById('exhibitModal').classList.remove('active');
   });
