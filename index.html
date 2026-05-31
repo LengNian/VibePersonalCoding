@@ -195,21 +195,6 @@
   .modal-card::-webkit-scrollbar-track { background: transparent; }
   .modal-card::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.2); border-radius: 2px; }
 
-  .door-hint {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: var(--gold-light);
-    font-size: 13px;
-    letter-spacing: 2px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    text-shadow: 0 0 20px rgba(201,169,110,0.5);
-    white-space: nowrap;
-    pointer-events: none;
-  }
-
   /* ---- 对话系统 ---- */
   .dialogue-overlay {
     position: fixed;
@@ -511,7 +496,7 @@
     .start-content {
       text-align: center;
       color: var(--gold-light);
-      font-family: 'Noto Serif SC', 'SimSun', serif;
+      font-family: 'STSong', 'SimSun', 'Songti SC', serif;
       -webkit-font-smoothing: antialiased;
     }
     .start-content h1 {
@@ -519,13 +504,11 @@
       letter-spacing: 6px;
       margin-bottom: 30px;
       font-weight: 400;
-      font-family: 'Noto Serif SC', 'SimSun', serif;
     }
     .start-content p {
       font-size: 16px;
       letter-spacing: 4px;
       opacity: 0.8;
-      font-family: 'Noto Serif SC', 'SimSun', serif;
     }
     .start-content .hint {
       font-size: 12px;
@@ -4087,11 +4070,6 @@
   })();
 
   // ============================================
-  //  展品数据配置 (全局)
-  // ============================================
-  const exhibitsDB = {};
-
-  // ============================================
   //  角色系统 (完整人形玩家)
   // ============================================
   const character = new THREE.Group();
@@ -4425,11 +4403,8 @@
     }, 800);
   }
 
-  // ESC 返回走廊 / 关闭弹窗
+  // ESC 返回走廊
   window.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && pinOverlay.classList.contains('active')) {
-      pinOverlay.classList.remove('active'); return;
-    }
     if (e.key === 'Escape' && currentScene !== 'corridor' && !isTransitioning) {
       switchScene('corridor');
     }
@@ -4723,140 +4698,6 @@
     if (roomMusicOn) stopRoomMusic();
     currentSong = 'future'; roomMusicOn = true;
     audioFuture.play().catch(() => {});
-  }
-
-  
-
-  // 小星星完整旋律 (带快慢节奏)
-  const starNotes = [
-    262,262,392,392,440,440,392, 349,349,330,330,294,294,262,
-    392,392,349,349,330,330,294, 392,392,349,349,330,330,294,
-    262,262,392,392,440,440,392, 349,349,330,330,294,294,262
-  ];
-  const starDur = [0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2, 0.6,0.6,0.6,0.6,0.6,0.6,1.2];
-
-  // 追梦赤子心 - 副歌
-  const dreamNotes = [
-    392,330,294,262, 220,262,294,330, 392,330,294,262, 294,330,392,
-    392,440,523, 523,440,392,330, 294,330,392, 392,440,523,
-    523,440,392,330, 294,262,294,262
-  ];
-  const dreamDur = [0.3,0.3,0.3,0.5, 0.2,0.2,0.2,0.5, 0.3,0.3,0.3,0.5, 0.3,0.3,0.8, 0.25,0.25,0.5, 0.25,0.25,0.25,0.25, 0.3,0.3,0.8, 0.25,0.25,0.5, 0.25,0.25,0.25,0.25, 0.3,0.3,0.5,0.5];
-
-  
-  let starMusicOn = false;
-  let starAudioCtx = null;
-  let starGain = null;
-  const starMelody = [262,262,392,392,440,440,392, 349,349,330,330,294,294,262, 392,392,349,349,330,330,294, 392,392,349,349,330,330,294, 262,262,392,392,440,440,392, 349,349,330,330,294,294,262]; // C-C-G-G-A-A-G...
-  const starDurations = [0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1, 0.5,0.5,0.5,0.5,0.5,0.5,1];
-  let starNoteIdx = 0;
-  let starNoteTimeout = null;
-  let starVolume = 0.25;
-  // UNUSED: music functions removed
-  function __unused_startStarMusic() {
-    if (starMusicOn) return;
-    if (!starAudioCtx) {
-      starAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      starGain = starAudioCtx.createGain();
-      starGain.gain.value = starVolume;
-      starGain.connect(starAudioCtx.destination);
-    }
-    if (starAudioCtx.state === 'suspended') starAudioCtx.resume();
-    starMusicOn = true;
-    starNoteIdx = 0;
-    playNextStarNote();
-  }
-
-  function stopStarMusic() {
-    starMusicOn = false;
-    if (starNoteTimeout) { clearTimeout(starNoteTimeout); starNoteTimeout = null; }
-  }
-
-  function playNextStarNote() {
-    if (!starMusicOn || !starAudioCtx) return;
-    const freq = starMelody[starNoteIdx % starMelody.length];
-    const duration = starDurations[starNoteIdx % starDurations.length];
-    // 主旋律 (三角波, 更有音乐感)
-    const osc = starAudioCtx.createOscillator();
-    const env = starAudioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = freq;
-    env.gain.setValueAtTime(0.2, starAudioCtx.currentTime);
-    env.gain.exponentialRampToValueAtTime(0.0001, starAudioCtx.currentTime + duration * 1.3);
-    osc.connect(env);env.connect(starGain);
-    osc.start(starAudioCtx.currentTime);osc.stop(starAudioCtx.currentTime + duration * 1.4);
-    // 低八度和声 (更丰富)
-    const osc2 = starAudioCtx.createOscillator();
-    const env2 = starAudioCtx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.value = freq / 2;
-    env2.gain.setValueAtTime(0.08, starAudioCtx.currentTime);
-    env2.gain.exponentialRampToValueAtTime(0.0001, starAudioCtx.currentTime + duration * 1.5);
-    osc2.connect(env2);env2.connect(starGain);
-    osc2.start(starAudioCtx.currentTime);osc2.stop(starAudioCtx.currentTime + duration * 1.6);
-    starNoteIdx++;
-    starNoteTimeout = setTimeout(() => playNextStarNote(), duration * 800);
-  }
-
-  // ============================================
-  //  追梦赤子心 (中学房间)
-  // ============================================
-  let dreamMusicOn = false;
-  let dreamNoteIdx = 0;
-  let dreamNoteTimeout = null;
-  // 追梦赤子心 副歌旋律 (C大调)
-  const dreamMelody = [
-    392,330,294,262,  220,262,294,330,  392,330,294,262,  294,330,392,  392,330,294,262,  220,262,294,330,  392,330,294,262,  294,330,294,
-    392,440,523,  523,440,392,330,  294,330,392,  392,440,523,  523,440,392,330,  294,262,294,262
-  ];
-  const dreamDurations = [
-    0.4,0.4,0.4,0.5,  0.3,0.3,0.3,0.5,  0.4,0.4,0.4,0.5,  0.4,0.4,0.8,  0.4,0.4,0.4,0.5,  0.3,0.3,0.3,0.5,  0.4,0.4,0.4,0.5,  0.4,0.4,0.8,
-    0.3,0.3,0.6,  0.3,0.3,0.3,0.3,  0.4,0.4,0.8,  0.3,0.3,0.6,  0.3,0.3,0.3,0.3,  0.4,0.4,0.5,0.5
-  ];
-
-  function startDreamMusic() {
-    if (dreamMusicOn) return;
-    if (!starAudioCtx) {
-      starAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      starGain = starAudioCtx.createGain();
-      starGain.gain.value = starVolume;
-      starGain.connect(starAudioCtx.destination);
-    }
-    if (starAudioCtx.state === 'suspended') starAudioCtx.resume();
-    dreamMusicOn = true;
-    dreamNoteIdx = 0;
-    playNextDreamNote();
-  }
-
-  function stopDreamMusic() {
-    dreamMusicOn = false;
-    if (dreamNoteTimeout) { clearTimeout(dreamNoteTimeout); dreamNoteTimeout = null; }
-  }
-
-  function playNextDreamNote() {
-    if (!dreamMusicOn || !starAudioCtx) return;
-    const freq = dreamMelody[dreamNoteIdx % dreamMelody.length];
-    const duration = dreamDurations[dreamNoteIdx % dreamDurations.length];
-    // 主旋律
-    const osc = starAudioCtx.createOscillator();
-    const env = starAudioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = freq;
-    env.gain.setValueAtTime(0.25, starAudioCtx.currentTime);
-    env.gain.exponentialRampToValueAtTime(0.0001, starAudioCtx.currentTime + duration * 1.2);
-    osc.connect(env);env.connect(starGain);
-    osc.start(starAudioCtx.currentTime);osc.stop(starAudioCtx.currentTime + duration * 1.3);
-    // 低八度
-    const osc2 = starAudioCtx.createOscillator();
-    const env2 = starAudioCtx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.value = freq / 2;
-    env2.gain.setValueAtTime(0.08, starAudioCtx.currentTime);
-    env2.gain.exponentialRampToValueAtTime(0.0001, starAudioCtx.currentTime + duration * 1.4);
-    osc2.connect(env2);env2.connect(starGain);
-    osc2.start(starAudioCtx.currentTime);osc2.stop(starAudioCtx.currentTime + duration * 1.5);
-    dreamNoteIdx++;
-    dreamNoteTimeout = setTimeout(() => playNextDreamNote(), duration * 700);
   }
 
   function animate() {
