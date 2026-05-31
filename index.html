@@ -420,6 +420,15 @@
 </style>
 </head>
 <body>
+  <!-- 加载画面 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-title">时 光 博 物 馆</div>
+    <div class="loading-bar-track">
+      <div class="loading-bar-fill"></div>
+    </div>
+    <div class="loading-dots">加载中…</div>
+  </div>
+
   <canvas id="c"></canvas>
 
   <div class="cursor" id="cursor"></div>
@@ -501,7 +510,7 @@
   </div>
 
   <!-- 点击开始提示（启用音频） -->
-  <div class="start-overlay" id="startOverlay">
+  <div class="start-overlay hidden" id="startOverlay">
     <div class="start-content">
       <h1>时光博物馆 · Museum of Time</h1>
       <p>点击任意处开始</p>
@@ -657,6 +666,56 @@
       background: linear-gradient(180deg, #6b5040 0%, #4d3a25 100%);
       border-color: var(--gold);
       color: #fff;
+    }
+
+    /* ---- 加载画面 ---- */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: #0a0806;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease;
+    }
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .loading-title {
+      font-family: 'STSong', 'SimSun', serif;
+      font-size: 24px;
+      color: var(--gold-light);
+      letter-spacing: 5px;
+      margin-bottom: 28px;
+    }
+    .loading-bar-track {
+      width: 200px;
+      height: 3px;
+      background: rgba(201,169,110,0.15);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .loading-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8b6914, var(--gold-light), #8b6914);
+      border-radius: 2px;
+      width: 0%;
+      animation: loadGrow 1.5s ease-in-out forwards;
+    }
+    @keyframes loadGrow {
+      0% { width: 0%; }
+      60% { width: 85%; }
+      100% { width: 100%; }
+    }
+    .loading-dots {
+      color: rgba(160,152,136,0.6);
+      font-size: 12px;
+      letter-spacing: 3px;
+      margin-top: 16px;
+      font-family: 'STSong', 'SimSun', serif;
     }
   </style>
 
@@ -4292,17 +4351,17 @@
   eyeR.position.set(0.07, 1.22, 0.2);
   character.add(eyeR);
 
-  character.position.set(0, 0, 1.5);
+  character.position.set(0, 0, 2.5);
   scene.add(character);
   // 碰撞半径
   const PLAYER_RADIUS = 0.35;
 
   // 角色状态
   const player = {
-    position: new THREE.Vector3(0, 0, 1.5),
+    position: new THREE.Vector3(0, 0, 2.5),
     speed: 5,
     isMoving: false,
-    moveAngle: Math.PI,    // 当前移动方向
+    moveAngle: 0,    // 当前移动方向
     // 跳跃
     velocityY: 0,
     isOnGround: true,
@@ -4312,7 +4371,7 @@
   const GROUND_Y = 0;
 
   // 360° 轨道相机
-  let cameraAngle = Math.PI;     // 水平环绕角 (弧度)
+  let cameraAngle = 0;          // 水平环绕角 (弧度)
   let cameraPitch = 0.5;        // 俯仰角 (弧度, 0=水平, 正=俯视)
   const CAMERA_PITCH_MIN = 0.1;
   const CAMERA_PITCH_MAX = 1.3;
@@ -4531,9 +4590,9 @@
         player.moveAngle = 0;
         cameraAngle = 0;
       } else {
-        player.position.set(0, 0, 0.8);
-        player.moveAngle = Math.PI;
-        cameraAngle = Math.PI;
+        player.position.set(0, 0, 1.5);
+        player.moveAngle = 0;
+        cameraAngle = 0;
       }
       character.position.copy(player.position);
       cameraPitch = 0.5;
@@ -5197,6 +5256,17 @@
   document.getElementById('sceneLabel').textContent = scenes.corridor.name;
 
   animate();
+
+  // 加载画面 → 过渡到开始遮罩
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  // 首次渲染完成后，加载画面淡出，开始遮罩淡入
+  setTimeout(() => {
+    loadingOverlay.classList.add('hidden');
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+      startOverlay.classList.remove('hidden');
+    }, 600);
+  }, 1800);
 
   console.log('🏛️ 时光博物馆已就绪');
   console.log('  WASD — 移动 | 移动鼠标 — 360° 旋转视角 | 滚轮 — 缩放');
