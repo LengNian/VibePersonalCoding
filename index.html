@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover,shrink-to-fit=no">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>时光博物馆 · Museum of Time</title>
@@ -550,6 +550,7 @@
   body.is-mobile .mobile-controls { display: block; }
   body.is-mobile .controls-help { display: none; }
   body.is-mobile .interact-hint { bottom: 140px; }
+  body.is-mobile { touch-action: manipulation; -webkit-overflow-scrolling: none; overflow: hidden; position: fixed; width: 100%; height: 100%; }
 
   .joystick-zone {
     position: fixed;
@@ -5642,8 +5643,11 @@
   document.getElementById('sceneLabel').textContent = scenes.corridor.name;
 
   // ===== 手机端操控 =====
-  const isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0) && window.innerWidth < 1024;
-  if (isMobile) document.body.classList.add('is-mobile');
+  let isMobile = false;
+  try { isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent); } catch(e) {}
+  if (!isMobile) isMobile = ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+  if (isMobile) { document.body.classList.add('is-mobile'); console.log('📱 手机端模式激活'); }
+  else { console.log('💻 桌面端模式'); }
 
   // 摇杆状态（必须在 animate() 之前声明）
   let mobileMoveX = 0, mobileMoveZ = 0, mobileJump = false;
@@ -5662,31 +5666,32 @@
   }, 1800);
 
   if (isMobile) {
-    // 移动端：禁止 canvas 吞掉触摸事件
-    document.getElementById('c').style.pointerEvents = 'none';
+    // 移动端：canvas 不抢触摸
+    const cv = document.getElementById('c');
+    cv.style.pointerEvents = 'none';
+    cv.style.touchAction = 'none';
 
     // --- 虚拟摇杆 ---
     const jZone = document.getElementById('joystickZone');
     const jThumb = document.getElementById('joystickThumb');
     let jId = null;
-    const jCenter = { x: 60, y: 60 };
 
     function updateJoystick(touch) {
       const rect = jZone.getBoundingClientRect();
-      const dx = touch.clientX - rect.left - jCenter.x;
-      const dy = touch.clientY - rect.top - jCenter.y;
+      const cx = rect.width / 2, cy = rect.height / 2;
+      const dx = touch.clientX - rect.left - cx;
+      const dy = touch.clientY - rect.top - cy;
       const dist = Math.sqrt(dx*dx + dy*dy);
-      const maxDist = 48;
+      const maxDist = cx * 0.72;
       const clamped = Math.min(dist, maxDist);
       const angle = Math.atan2(dy, dx);
-      const tx = Math.cos(angle) * clamped * (60/maxDist);
-      const ty = Math.sin(angle) * clamped * (60/maxDist);
+      const tx = Math.cos(angle) * clamped;
+      const ty = Math.sin(angle) * clamped;
       jThumb.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`;
-      const ratio = dist / maxDist;
+      const ratio = clamped / maxDist;
       mobileMoveX = Math.max(-1, Math.min(1, Math.cos(angle) * ratio));
       mobileMoveZ = Math.max(-1, Math.min(1, Math.sin(angle) * ratio));
     }
-
     function resetJoystick() {
       jId = null;
       jZone.classList.remove('active');
@@ -5694,72 +5699,84 @@
       mobileMoveX = 0; mobileMoveZ = 0;
     }
 
-    jZone.addEventListener('touchstart', e => {
+    jZone.addEventListener('touchstart', function(e) {
       e.preventDefault(); e.stopPropagation();
-      for (const t of e.changedTouches) {
-        if (jId === null) { jId = t.identifier; jZone.classList.add('active'); updateJoystick(t); }
+      if (jId === null) { jId = e.changedTouches[0].identifier; jZone.classList.add('active'); updateJoystick(e.changedTouches[0]); }
+    }, { passive: false });
+    jZone.addEventListener('touchmove', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === jId) { updateJoystick(e.changedTouches[i]); break; }
       }
     }, { passive: false });
-    jZone.addEventListener('touchmove', e => {
+    jZone.addEventListener('touchend', function(e) {
       e.preventDefault(); e.stopPropagation();
-      for (const t of e.changedTouches) { if (t.identifier === jId) updateJoystick(t); }
-    }, { passive: false });
-    jZone.addEventListener('touchend', e => {
-      e.preventDefault(); e.stopPropagation();
-      for (const t of e.changedTouches) { if (t.identifier === jId) resetJoystick(); }
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === jId) { resetJoystick(); break; }
+      }
     });
-    jZone.addEventListener('touchcancel', e => { e.preventDefault(); resetJoystick(); });
+    jZone.addEventListener('touchcancel', function(e) { e.preventDefault(); resetJoystick(); });
 
-    // --- 右半屏触摸旋转视角 ---
-    let turnId = null, turnPrevX = 0, turnPrevY = 0;
-    const RIGHT_THRESHOLD = window.innerWidth * 0.3;
+    // --- 右半屏触摸旋转 ---
+    let turnId = null, turnPX = 0, turnPY = 0;
+    const RIGHT_TH = window.innerWidth * 0.35;
+    const UI_SELECTOR = '.mobile-controls,.modal-overlay,.completion-overlay,.bulletin-overlay,.pin-overlay,.dialogue-overlay,.start-overlay';
 
-    window.addEventListener('touchstart', e => {
+    window.addEventListener('touchstart', function(e) {
       if (turnId !== null) return;
-      for (const t of e.changedTouches) {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
         const el = document.elementFromPoint(t.clientX, t.clientY);
-        if (el && (el.closest('.mobile-controls') || el.closest('.modal-overlay') || el.closest('.completion-overlay') || el.closest('.bulletin-overlay') || el.closest('.pin-overlay') || el.closest('.dialogue-overlay') || el.closest('.start-overlay'))) continue;
-        if (t.clientX > RIGHT_THRESHOLD && t.identifier !== jId) {
-          turnId = t.identifier;
-          turnPrevX = t.clientX; turnPrevY = t.clientY;
+        if (el && el.closest && el.closest(UI_SELECTOR)) continue;
+        if (t.clientX > RIGHT_TH && t.identifier !== jId) {
+          turnId = t.identifier; turnPX = t.clientX; turnPY = t.clientY;
+          return;
         }
       }
     }, { passive: false });
 
-    window.addEventListener('touchmove', e => {
-      for (const t of e.changedTouches) {
+    window.addEventListener('touchmove', function(e) {
+      if (turnId === null) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
         if (t.identifier === turnId) {
-          mouseDX += (t.clientX - turnPrevX) * 1.5;
-          mouseDY += (t.clientY - turnPrevY) * 1.5;
-          turnPrevX = t.clientX; turnPrevY = t.clientY;
+          mouseDX += (t.clientX - turnPX) * 1.5;
+          mouseDY += (t.clientY - turnPY) * 1.5;
+          turnPX = t.clientX; turnPY = t.clientY;
+          break;
         }
       }
     }, { passive: false });
 
-    window.addEventListener('touchend', e => {
-      for (const t of e.changedTouches) { if (t.identifier === turnId) turnId = null; }
-    });
-    window.addEventListener('touchcancel', () => { turnId = null; });
+    const endTurn = function(e) {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === turnId) { turnId = null; break; }
+      }
+    };
+    window.addEventListener('touchend', endTurn);
+    window.addEventListener('touchcancel', function() { turnId = null; });
 
-    // --- 动作按钮 (用 click 事件，移动端最可靠) ---
-    document.getElementById('mobileEnterBtn').addEventListener('click', e => {
-      e.preventDefault(); e.stopPropagation();
+    // --- 动作按钮 ---
+    document.getElementById('mobileEnterBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
       if (currentScene !== 'corridor') {
         for (const ia of activeSceneData.interactables) {
           if (ia.data.type === 'dialogue' && player.position.distanceTo(ia.mesh.position) < 7.0) { startDialogue(); return; }
         }
       } else {
-        const { distance: doorDist, tag: doorTag } = getDoorDistance();
-        if (doorDist < 1.5 && doorTag) { doorTag === 'future' ? showPinLock() : switchScene(doorTag); }
+        const dd = getDoorDistance();
+        if (dd.distance < 1.5 && dd.tag) { dd.tag === 'future' ? showPinLock() : switchScene(dd.tag); }
       }
     });
-    document.getElementById('mobileExhibitBtn').addEventListener('click', e => {
-      e.preventDefault(); e.stopPropagation(); handleInteract();
+    document.getElementById('mobileExhibitBtn').addEventListener('click', function(e) {
+      e.stopPropagation(); handleInteract();
     });
-    document.getElementById('mobileJumpBtn').addEventListener('click', e => {
-      e.preventDefault(); e.stopPropagation();
+    document.getElementById('mobileJumpBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
       if (player.isOnGround) { player.velocityY = JUMP_SPEED; player.isOnGround = false; }
     });
+
+    console.log('✅ 手机操控: 摇杆+按钮+视角旋转 就绪');
   }
 
   console.log('🏛️ 时光博物馆已就绪');
