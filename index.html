@@ -549,83 +549,60 @@
   .mobile-controls { display: none; }
   body.is-mobile .mobile-controls { display: block; }
   body.is-mobile .controls-help { display: none; }
-  body.is-mobile .interact-hint { bottom: 140px; }
-  body.is-mobile { touch-action: manipulation; -webkit-overflow-scrolling: none; overflow: hidden; position: fixed; width: 100%; height: 100%; }
+  body.is-mobile .interact-hint { bottom: 150px; }
+  body.is-mobile { touch-action: manipulation; overflow: hidden; position: fixed; width: 100%; height: 100%; }
 
-  .joystick-zone {
-    position: fixed;
-    bottom: 50px;
-    left: 40px;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-    border: 2px solid rgba(201,169,110,0.25);
-    z-index: 100;
-    touch-action: none;
-    pointer-events: auto;
+  .mobile-dpad {
+    position: fixed; bottom: 40px; left: 30px; z-index: 100;
+    display: grid; grid-template-columns: 48px 48px 48px; grid-template-rows: 48px 48px 48px;
+    gap: 3px; pointer-events: auto;
   }
-  .joystick-thumb {
-    position: absolute;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(201,169,110,0.35);
-    border: 2px solid rgba(201,169,110,0.55);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    transition: background 0.15s;
-    touch-action: none;
-    pointer-events: none;
-  }
-  .joystick-zone.active .joystick-thumb {
-    background: rgba(201,169,110,0.55);
-  }
-
-  .mobile-actions {
-    position: fixed;
-    bottom: 50px;
-    right: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    z-index: 100;
-    pointer-events: auto;
-  }
-  .mobile-btn {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
+  .dpad-btn {
+    width: 48px; height: 48px; border-radius: 10px;
     border: 2px solid rgba(201,169,110,0.35);
-    background: rgba(20,14,6,0.7);
-    color: rgba(201,169,110,0.85);
-    font-size: 13px;
-    font-family: 'Noto Serif SC', serif;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
+    background: rgba(20,14,6,0.75);
+    color: rgba(201,169,110,0.75);
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    user-select: none;
+    user-select: none; outline: none;
+    -webkit-user-select: none;
+    cursor: default;
+  }
+  .dpad-btn:active, .dpad-btn.pressed {
+    background: rgba(201,169,110,0.25);
+    border-color: var(--gold-light);
+    color: #fff;
+  }
+  #dpadUp { grid-column: 2; grid-row: 1; }
+  #dpadLeft { grid-column: 1; grid-row: 2; }
+  #dpadRight { grid-column: 3; grid-row: 2; }
+  #dpadDown { grid-column: 2; grid-row: 3; }
+
+  .mobile-btn {
+    position: fixed; z-index: 100;
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 2px solid rgba(201,169,110,0.35);
+    background: rgba(20,14,6,0.75);
+    color: rgba(201,169,110,0.85);
+    font-size: 14px; font-family: 'Noto Serif SC',serif;
+    display: flex; align-items: center; justify-content: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; outline: none;
+    -webkit-user-select: none;
+    pointer-events: auto;
   }
   .mobile-btn:active {
-    background: rgba(201,169,110,0.2);
-    border-color: rgba(201,169,110,0.7);
+    background: rgba(201,169,110,0.25);
+    border-color: var(--gold-light);
     color: #fff;
-    transform: scale(0.93);
+    transform: scale(0.92);
   }
-  .mobile-jump-btn {
-    position: fixed;
-    bottom: 50px;
-    left: 180px;
-    width: 56px;
-    height: 56px;
-    z-index: 100;
-  }
+  #mobileJumpBtn { bottom: 40px; left: 200px; }
+  #mobileEnterBtn { bottom: 40px; right: 130px; }
+  #mobileExhibitBtn { bottom: 40px; right: 50px; }
 </style>
 </head>
 <body>
@@ -953,16 +930,17 @@
     }
   </style>
 
-  <!-- 手机端操控（必须在 script 之前，否则 JS 找不到元素） -->
+  <!-- 手机端操控（必须在 script 之前） -->
   <div class="mobile-controls">
-    <div class="joystick-zone" id="joystickZone">
-      <div class="joystick-thumb" id="joystickThumb"></div>
+    <div class="mobile-dpad" id="mobileDpad">
+      <button class="dpad-btn" id="dpadUp">↑</button>
+      <button class="dpad-btn" id="dpadLeft">←</button>
+      <button class="dpad-btn" id="dpadRight">→</button>
+      <button class="dpad-btn" id="dpadDown">↓</button>
     </div>
-    <div class="mobile-jump-btn mobile-btn" id="mobileJumpBtn">跳</div>
-    <div class="mobile-actions">
-      <button class="mobile-btn" id="mobileEnterBtn">进</button>
-      <button class="mobile-btn" id="mobileExhibitBtn">看</button>
-    </div>
+    <button class="mobile-btn jump-btn" id="mobileJumpBtn">跳</button>
+    <button class="mobile-btn" id="mobileEnterBtn">进</button>
+    <button class="mobile-btn" id="mobileExhibitBtn">看</button>
   </div>
 
   <script type="importmap">
@@ -5678,69 +5656,49 @@
   }, 1800);
 
   if (isMobile) {
-    // 移动端：canvas 不抢触摸
+    // canvas 不抢触摸
     const cv = document.getElementById('c');
     cv.style.pointerEvents = 'none';
-    cv.style.touchAction = 'none';
 
-    // --- 虚拟摇杆 ---
-    const jZone = document.getElementById('joystickZone');
-    const jThumb = document.getElementById('joystickThumb');
-    let jId = null;
-
-    function updateJoystick(touch) {
-      const rect = jZone.getBoundingClientRect();
-      const cx = rect.width / 2, cy = rect.height / 2;
-      const dx = touch.clientX - rect.left - cx;
-      const dy = touch.clientY - rect.top - cy;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      const maxDist = cx * 0.72;
-      const clamped = Math.min(dist, maxDist);
-      const angle = Math.atan2(dy, dx);
-      const tx = Math.cos(angle) * clamped;
-      const ty = Math.sin(angle) * clamped;
-      jThumb.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`;
-      const ratio = clamped / maxDist;
-      mobileMoveX = Math.max(-1, Math.min(1, Math.cos(angle) * ratio));
-      mobileMoveZ = Math.max(-1, Math.min(1, Math.sin(angle) * ratio));
+    // --- 十字键 D-Pad (pointerdown/up, 最可靠的移动端方案) ---
+    function setupDpad(id, mx, mz) {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.addEventListener('pointerdown', function(e) {
+        e.preventDefault(); e.stopPropagation();
+        mobileMoveX = mx; mobileMoveZ = mz;
+        btn.classList.add('pressed');
+      });
+      btn.addEventListener('pointerup', function(e) {
+        e.preventDefault(); e.stopPropagation();
+        mobileMoveX = 0; mobileMoveZ = 0;
+        btn.classList.remove('pressed');
+      });
+      btn.addEventListener('pointerleave', function(e) {
+        mobileMoveX = 0; mobileMoveZ = 0;
+        btn.classList.remove('pressed');
+      });
+      btn.addEventListener('pointercancel', function(e) {
+        mobileMoveX = 0; mobileMoveZ = 0;
+        btn.classList.remove('pressed');
+      });
     }
-    function resetJoystick() {
-      jId = null;
-      jZone.classList.remove('active');
-      jThumb.style.transform = 'translate(-50%, -50%)';
-      mobileMoveX = 0; mobileMoveZ = 0;
-    }
-
-    jZone.addEventListener('touchstart', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      if (jId === null) { jId = e.changedTouches[0].identifier; jZone.classList.add('active'); updateJoystick(e.changedTouches[0]); }
-    }, { passive: false });
-    jZone.addEventListener('touchmove', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === jId) { updateJoystick(e.changedTouches[i]); break; }
-      }
-    }, { passive: false });
-    jZone.addEventListener('touchend', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === jId) { resetJoystick(); break; }
-      }
-    });
-    jZone.addEventListener('touchcancel', function(e) { e.preventDefault(); resetJoystick(); });
+    setupDpad('dpadUp', 0, 1);
+    setupDpad('dpadDown', 0, -1);
+    setupDpad('dpadLeft', -1, 0);
+    setupDpad('dpadRight', 1, 0);
 
     // --- 右半屏触摸旋转 ---
     let turnId = null, turnPX = 0, turnPY = 0;
     const RIGHT_TH = window.innerWidth * 0.35;
-    const UI_SELECTOR = '.mobile-controls,.modal-overlay,.completion-overlay,.bulletin-overlay,.pin-overlay,.dialogue-overlay,.start-overlay';
 
     window.addEventListener('touchstart', function(e) {
       if (turnId !== null) return;
       for (let i = 0; i < e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
         const el = document.elementFromPoint(t.clientX, t.clientY);
-        if (el && el.closest && el.closest(UI_SELECTOR)) continue;
-        if (t.clientX > RIGHT_TH && t.identifier !== jId) {
+        if (el && el.closest && el.closest('.mobile-controls,.modal-overlay,.completion-overlay,.bulletin-overlay,.pin-overlay,.dialogue-overlay,.start-overlay')) continue;
+        if (t.clientX > RIGHT_TH) {
           turnId = t.identifier; turnPX = t.clientX; turnPY = t.clientY;
           return;
         }
@@ -5750,27 +5708,26 @@
     window.addEventListener('touchmove', function(e) {
       if (turnId === null) return;
       for (let i = 0; i < e.changedTouches.length; i++) {
-        const t = e.changedTouches[i];
-        if (t.identifier === turnId) {
-          mouseDX += (t.clientX - turnPX) * 1.5;
-          mouseDY += (t.clientY - turnPY) * 1.5;
-          turnPX = t.clientX; turnPY = t.clientY;
+        if (e.changedTouches[i].identifier === turnId) {
+          mouseDX += (e.changedTouches[i].clientX - turnPX) * 1.5;
+          mouseDY += (e.changedTouches[i].clientY - turnPY) * 1.5;
+          turnPX = e.changedTouches[i].clientX;
+          turnPY = e.changedTouches[i].clientY;
           break;
         }
       }
     }, { passive: false });
 
-    const endTurn = function(e) {
+    window.addEventListener('touchend', function(e) {
       for (let i = 0; i < e.changedTouches.length; i++) {
         if (e.changedTouches[i].identifier === turnId) { turnId = null; break; }
       }
-    };
-    window.addEventListener('touchend', endTurn);
+    });
     window.addEventListener('touchcancel', function() { turnId = null; });
 
     // --- 动作按钮 ---
-    document.getElementById('mobileEnterBtn').addEventListener('click', function(e) {
-      e.stopPropagation();
+    document.getElementById('mobileEnterBtn').addEventListener('pointerdown', function(e) {
+      e.preventDefault(); e.stopPropagation();
       if (currentScene !== 'corridor') {
         for (const ia of activeSceneData.interactables) {
           if (ia.data.type === 'dialogue' && player.position.distanceTo(ia.mesh.position) < 7.0) { startDialogue(); return; }
@@ -5780,15 +5737,15 @@
         if (dd.distance < 1.5 && dd.tag) { dd.tag === 'future' ? showPinLock() : switchScene(dd.tag); }
       }
     });
-    document.getElementById('mobileExhibitBtn').addEventListener('click', function(e) {
-      e.stopPropagation(); handleInteract();
+    document.getElementById('mobileExhibitBtn').addEventListener('pointerdown', function(e) {
+      e.preventDefault(); e.stopPropagation(); handleInteract();
     });
-    document.getElementById('mobileJumpBtn').addEventListener('click', function(e) {
-      e.stopPropagation();
+    document.getElementById('mobileJumpBtn').addEventListener('pointerdown', function(e) {
+      e.preventDefault(); e.stopPropagation();
       if (player.isOnGround) { player.velocityY = JUMP_SPEED; player.isOnGround = false; }
     });
 
-    console.log('✅ 手机操控: 摇杆+按钮+视角旋转 就绪');
+    console.log('✅ 手机操控 D-Pad + 按钮 + 视角 就绪');
   }
 
   console.log('🏛️ 时光博物馆已就绪');
