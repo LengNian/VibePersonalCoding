@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <title>时光博物馆 · Museum of Time</title>
@@ -29,7 +29,7 @@
     height: 100vh;
   }
 
-  canvas { display: block; }
+  canvas { display: block; position: fixed; top: 0; left: 0; z-index: 0; }
 
   /* ---- 自定义光标 ---- */
   .cursor {
@@ -547,10 +547,9 @@
 
   /* ---- 手机端操控 ---- */
   .mobile-controls { display: none; }
-  @media (pointer: coarse) {
-    .mobile-controls { display: block; }
-    .controls-help { display: none; }
-  }
+  body.is-mobile .mobile-controls { display: block; }
+  body.is-mobile .controls-help { display: none; }
+  body.is-mobile .interact-hint { bottom: 140px; }
 
   .joystick-zone {
     position: fixed;
@@ -728,6 +727,13 @@
           <div class="label">📬 联系馆长</div>
           <div class="text">
             欢迎参观时光博物馆。有任何建议或想法，请给馆长发邮件：<br><b>weisj_ln@163.com</b>
+          </div>
+        </div>
+
+        <div class="bulletin-notice">
+          <div class="label">🏆 全收集成就</div>
+          <div class="text">
+            与<b>全部展品</b>交互后，将解锁隐藏成就页面——馆长的致谢与一封留给你的信。
           </div>
         </div>
 
@@ -5636,7 +5642,8 @@
   document.getElementById('sceneLabel').textContent = scenes.corridor.name;
 
   // ===== 手机端操控 =====
-  const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0) && window.innerWidth < 1024;
+  if (isMobile) document.body.classList.add('is-mobile');
 
   // 摇杆状态（必须在 animate() 之前声明）
   let mobileMoveX = 0, mobileMoveZ = 0, mobileJump = false;
