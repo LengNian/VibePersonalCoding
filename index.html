@@ -538,6 +538,93 @@
     .controls-help { bottom: 20px; font-size: 10px; }
     .modal-card { padding: 32px 24px 28px; }
     .dialogue-box { padding: 24px 20px 20px; }
+    .scene-label { font-size: 16px; top: 20px; }
+    .discovery-counter { top: 50px; font-size: 11px; }
+    .interact-hint { bottom: 130px; font-size: 13px; }
+    .start-content h1 { font-size: 24px; }
+    .completion-card { padding: 40px 28px 36px; }
+  }
+
+  /* ---- 手机端操控 ---- */
+  .mobile-controls { display: none; }
+  @media (pointer: coarse) {
+    .mobile-controls { display: block; }
+    .controls-help { display: none; }
+  }
+
+  .joystick-zone {
+    position: fixed;
+    bottom: 50px;
+    left: 40px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(201,169,110,0.25);
+    z-index: 100;
+    touch-action: none;
+    pointer-events: auto;
+  }
+  .joystick-thumb {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(201,169,110,0.35);
+    border: 2px solid rgba(201,169,110,0.55);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background 0.15s;
+    touch-action: none;
+    pointer-events: none;
+  }
+  .joystick-zone.active .joystick-thumb {
+    background: rgba(201,169,110,0.55);
+  }
+
+  .mobile-actions {
+    position: fixed;
+    bottom: 50px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 100;
+    pointer-events: auto;
+  }
+  .mobile-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid rgba(201,169,110,0.35);
+    background: rgba(20,14,6,0.7);
+    color: rgba(201,169,110,0.85);
+    font-size: 13px;
+    font-family: 'Noto Serif SC', serif;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .mobile-btn:active {
+    background: rgba(201,169,110,0.2);
+    border-color: rgba(201,169,110,0.7);
+    color: #fff;
+    transform: scale(0.93);
+  }
+  .mobile-jump-btn {
+    position: fixed;
+    bottom: 50px;
+    left: 180px;
+    width: 56px;
+    height: 56px;
+    z-index: 100;
   }
 </style>
 </head>
@@ -1079,11 +1166,11 @@
   //  场景对象管理
   // ============================================
   const scenes = {
-    corridor: { group: new THREE.Group(), colliders: [], interactables: [], name: '记 忆 博 物 馆' },
-    past: { group: new THREE.Group(), colliders: [], interactables: [], name: '过 去 之 室' },
-    present: { group: new THREE.Group(), colliders: [], interactables: [], name: '现 在 之 室' },
-    future: { group: new THREE.Group(), colliders: [], interactables: [], name: '未 来 之 室' },
-    curator: { group: new THREE.Group(), colliders: [], interactables: [], name: '馆 长 办 公 室' },
+    corridor: { group: new THREE.Group(), colliders: [], interactables: [], name: '记 忆 博 物 馆', particles: [] },
+    past: { group: new THREE.Group(), colliders: [], interactables: [], name: '过 去 之 室', particles: [], ambientLight: null },
+    present: { group: new THREE.Group(), colliders: [], interactables: [], name: '现 在 之 室', particles: [], ambientLight: null },
+    future: { group: new THREE.Group(), colliders: [], interactables: [], name: '未 来 之 室', particles: [], ambientLight: null },
+    curator: { group: new THREE.Group(), colliders: [], interactables: [], name: '馆 长 办 公 室', particles: [], ambientLight: null },
   };
 
   let currentScene = 'corridor';
@@ -1096,6 +1183,38 @@
   }
   function addInteractable(group, mesh, data) {
     scenes[group].interactables.push({ mesh, data, group });
+  }
+
+  // 大气粒子工厂
+  function addRoomParticles(group, config) {
+    const pts = [];
+    for (let i = 0; i < config.count; i++) {
+      const geo = config.type === 'sprite' ? new THREE.PlaneGeometry(config.size*0.5, config.size*0.5) : new THREE.SphereGeometry(config.size, 4, 4);
+      const mat = config.type === 'sprite'
+        ? new THREE.MeshBasicMaterial({ color: config.color, transparent: true, opacity: config.opacity || 0.5, depthWrite: false, side: THREE.DoubleSide })
+        : new THREE.MeshBasicMaterial({ color: config.color, transparent: true, opacity: config.opacity || 0.4, depthWrite: false });
+      const p = new THREE.Mesh(geo, mat);
+      p.position.set(
+        config.range[0] + Math.random() * config.range[1],
+        config.range[2] + Math.random() * config.range[3],
+        config.range[4] + Math.random() * config.range[5]
+      );
+      p.userData = {
+        isParticle: true,
+        baseY: p.position.y,
+        speedY: 0.3 + Math.random() * (config.fallSpeed || 0.8),
+        speedX: (Math.random() - 0.5) * (config.drift || 0.3),
+        speedZ: (Math.random() - 0.5) * (config.drift || 0.3),
+        phase: Math.random() * Math.PI * 2,
+        range: config.range,
+        style: config.style || 'float',
+        colorHex: config.color
+      };
+      scenes[group].group.add(p);
+      scenes[group].particles.push(p);
+      pts.push(p);
+    }
+    return pts;
   }
 
   // ============================================
@@ -1620,6 +1739,8 @@
     const seesawInt=new THREE.Mesh(new THREE.BoxGeometry(3,2,1.5),new THREE.MeshBasicMaterial({visible:false}));seesawInt.position.set(-5,1,17);
     addInteractable(R,seesawInt,{type:'exhibit',title:'跷跷板',content:'<p>和邻居家小胖一起玩的跷跷板。他太重了，每次我都悬在半空下不来。</p><p>后来我开始多吃饭，终于有一天——跷跷板平了。那是我第一次理解什么叫"成长"。</p>'});
 
+    // 蒲公英粒子
+    addRoomParticles(R, { count: 60, type:'sprite', size:0.1, color:'#fffbe8', opacity:0.55, range:[-(SIZE+8)/2,SIZE+8,0.3,SIZE*0.9,(SIZE+8)/2,SIZE+8], fallSpeed:0.2, drift:0.6, style:'dandelion' });
 
   })();
 
@@ -3249,6 +3370,9 @@
     dividerWall(D1, w1Mat, WH1);
     dividerWall(D1+D2, w2Mat, WH2);
 
+    // 粉笔灰 / 阳光尘埃粒子
+    addRoomParticles(R, { count: 50, type:'sprite', size:0.04, color:'#fff8e0', opacity:0.35, range:[-W/2+0.5,W-1,0.5,3,D1*0.6,D1+D2+D3*0.8], fallSpeed:0.1, drift:0.25, style:'dust' });
+
   })();
 
   // ============================================
@@ -4117,6 +4241,11 @@
     // 门框柱子 (避免穿门框)
     addCollider(R, -2.2, 0, 0.3, 0.3);
     addCollider(R, 2.2, 0, 0.3, 0.3);
+
+    // 未来星粒子 (整个场景)
+    addRoomParticles(R, { count: 80, type:'sprite', size:0.06, color:'#c8e8ff', opacity:0.45, range:[-7,14,1.5,4.5,-7,12], fallSpeed:0.15, drift:0.5, style:'star' });
+    // 暖金色光点 (阳台区域)
+    addRoomParticles(R, { count: 30, type:'sprite', size:0.04, color:'#ffddaa', opacity:0.3, range:[-6,12,0.2,1.5,-6,3], fallSpeed:0.1, drift:0.3, style:'glow' });
   })();
 
   // ============================================
@@ -4390,6 +4519,9 @@
     const chandelierLight = new THREE.PointLight('#ffddaa', 6, 8, 2);
     chandelierLight.position.set(0, 3.3, 4);
     add(R, chandelierLight);
+
+    // 暖光尘埃粒子 (书桌和灯光周围)
+    addRoomParticles(R, { count: 35, type:'sprite', size:0.03, color:'#ffe8c0', opacity:0.3, range:[-3,6,0.5,3,1,6], fallSpeed:0.06, drift:0.15, style:'dust' });
   })();
 
   // ============================================
@@ -5115,12 +5247,13 @@
       const camForward = new THREE.Vector3(-Math.sin(cameraAngle), 0, -Math.cos(cameraAngle));
       const camRight = new THREE.Vector3(Math.cos(cameraAngle), 0, -Math.sin(cameraAngle));
 
-      // WASD 移动 (相对相机方向)
+      // WASD 移动 (相对相机方向, 兼容手机摇杆)
       const moveDir = new THREE.Vector3();
-      if (keys['w'] || keys['arrowup']) moveDir.add(camForward);
-      if (keys['s'] || keys['arrowdown']) moveDir.sub(camForward);
-      if (keys['a'] || keys['arrowleft']) moveDir.sub(camRight);
-      if (keys['d'] || keys['arrowright']) moveDir.add(camRight);
+      if (keys['w'] || keys['arrowup'] || mobileMoveZ > 0.3) moveDir.add(camForward);
+      if (keys['s'] || keys['arrowdown'] || mobileMoveZ < -0.3) moveDir.sub(camForward);
+      if (keys['a'] || keys['arrowleft'] || mobileMoveX < -0.3) moveDir.sub(camRight);
+      if (keys['d'] || keys['arrowright'] || mobileMoveX > 0.3) moveDir.add(camRight);
+
 
       const isMoving = moveDir.length() > 0.01;
       player.isMoving = isMoving;
@@ -5388,6 +5521,65 @@
       scene.fog = new THREE.Fog(0x1a1512, 18, 55);
     }
 
+    // ===== 大气粒子动画 =====
+    const now = Date.now() * 0.001;
+    const pts = scenes[currentScene].particles || [];
+    for (const p of pts) {
+      const ud = p.userData;
+      if (!ud || !ud.isParticle) continue;
+
+      // 垂直浮动
+      p.position.y += Math.sin(now * 1.5 + ud.phase) * ud.speedY * dt * 0.3;
+      // 水平漂移
+      p.position.x += Math.sin(now * 0.7 + ud.phase * 1.7) * ud.speedX * dt;
+      p.position.z += Math.cos(now * 0.7 + ud.phase * 1.7) * ud.speedZ * dt;
+
+      // 范围约束：超出范围后重置
+      if (p.position.y < ud.range[2] - 0.3 || p.position.y > ud.range[2] + ud.range[3] + 0.5) {
+        p.position.y = ud.range[2] + Math.random() * ud.range[3];
+      }
+      if (Math.abs(p.position.x - ud.range[0] - ud.range[1]/2) > ud.range[1]/2 + 1) {
+        p.position.x = ud.range[0] + Math.random() * ud.range[1];
+      }
+      if (Math.abs(p.position.z - ud.range[4] - ud.range[5]/2) > ud.range[5]/2 + 1) {
+        p.position.z = ud.range[4] + Math.random() * ud.range[5];
+      }
+
+      // 闪烁透明度
+      if (ud.style === 'star') {
+        p.material.opacity = 0.2 + Math.sin(now * 2.5 + ud.phase) * 0.3;
+      } else if (ud.style === 'glow') {
+        p.material.opacity = 0.15 + Math.sin(now * 3 + ud.phase) * 0.2;
+      } else if (ud.style === 'dandelion') {
+        p.material.opacity = 0.35 + Math.sin(now * 1.2 + ud.phase) * 0.25;
+      }
+
+      // 始终朝向相机 (sprite 风格)
+      if (p.material.side === THREE.DoubleSide) {
+        p.lookAt(camera.position);
+      }
+    }
+
+    // ===== 动态光影 =====
+    const ambientPulse = 1 + Math.sin(now * 0.3) * 0.05;
+    if (currentScene === 'past') {
+      ambientLight.color.set('#4a3a2a');
+      ambientLight.intensity = 1.0 * ambientPulse;
+      scene.fog.color.copy(new THREE.Color(0x3a2a1a));
+    } else if (currentScene === 'present') {
+      ambientLight.color.set('#5a4a3a');
+      ambientLight.intensity = 1.05 * ambientPulse;
+    } else if (currentScene === 'future') {
+      ambientLight.color.set('#3a3a4a');
+      ambientLight.intensity = 1.1 * ambientPulse;
+    } else if (currentScene === 'curator') {
+      ambientLight.color.set('#4a3a2a');
+      ambientLight.intensity = 1.0 * ambientPulse;
+      scene.fog.color.copy(new THREE.Color(0x2a1a0a));
+    } else {
+      ambientLight.intensity = 1.0;
+    }
+
     // 自定义光标
     const hintVisible = hintEl.classList.contains('visible');
     document.getElementById('cursor').classList.toggle('near', hintVisible);
@@ -5443,6 +5635,12 @@
 
   document.getElementById('sceneLabel').textContent = scenes.corridor.name;
 
+  // ===== 手机端操控 =====
+  const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  // 摇杆状态（必须在 animate() 之前声明）
+  let mobileMoveX = 0, mobileMoveZ = 0, mobileJump = false;
+
   animate();
 
   // 加载画面 → 过渡到开始遮罩
@@ -5456,11 +5654,123 @@
     }, 600);
   }, 1800);
 
+  if (isMobile) {
+    // 防止双击缩放
+    document.addEventListener('touchmove', e => { e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturestart', e => { e.preventDefault(); });
+
+    // --- 虚拟摇杆 ---
+    const jZone = document.getElementById('joystickZone');
+    const jThumb = document.getElementById('joystickThumb');
+    let jId = null;
+    const jCenter = { x: 60, y: 60 };
+
+    function updateJoystick(touch) {
+      const rect = jZone.getBoundingClientRect();
+      const dx = touch.clientX - rect.left - jCenter.x;
+      const dy = touch.clientY - rect.top - jCenter.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const maxDist = 48;
+      const clamped = Math.min(dist, maxDist);
+      const angle = Math.atan2(dy, dx);
+      const tx = Math.cos(angle) * clamped * (60/maxDist);
+      const ty = Math.sin(angle) * clamped * (60/maxDist);
+      jThumb.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`;
+      const ratio = dist / maxDist;
+      mobileMoveX = Math.max(-1, Math.min(1, Math.cos(angle) * ratio));
+      mobileMoveZ = Math.max(-1, Math.min(1, Math.sin(angle) * ratio));
+    }
+
+    function resetJoystick() {
+      jId = null;
+      jZone.classList.remove('active');
+      jThumb.style.transform = 'translate(-50%, -50%)';
+      mobileMoveX = 0; mobileMoveZ = 0;
+    }
+
+    jZone.addEventListener('touchstart', e => {
+      for (const t of e.changedTouches) {
+        if (jId === null) { jId = t.identifier; jZone.classList.add('active'); updateJoystick(t); }
+      }
+    });
+    jZone.addEventListener('touchmove', e => {
+      for (const t of e.changedTouches) { if (t.identifier === jId) updateJoystick(t); }
+    });
+    jZone.addEventListener('touchend', e => {
+      for (const t of e.changedTouches) { if (t.identifier === jId) resetJoystick(); }
+    });
+    jZone.addEventListener('touchcancel', resetJoystick);
+
+    // --- 右半屏触摸旋转视角 ---
+    let turnId = null, turnPrevX = 0, turnPrevY = 0;
+    const RIGHT_THRESHOLD = window.innerWidth * 0.3;
+
+    window.addEventListener('touchstart', e => {
+      if (turnId !== null) return;
+      for (const t of e.changedTouches) {
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (el && (el.closest('.mobile-controls') || el.closest('.modal-overlay') || el.closest('.completion-overlay') || el.closest('.bulletin-overlay') || el.closest('.pin-overlay') || el.closest('.dialogue-overlay') || el.closest('.start-overlay'))) continue;
+        if (t.clientX > RIGHT_THRESHOLD && t.identifier !== jId) {
+          turnId = t.identifier;
+          turnPrevX = t.clientX; turnPrevY = t.clientY;
+        }
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchmove', e => {
+      for (const t of e.changedTouches) {
+        if (t.identifier === turnId) {
+          mouseDX += (t.clientX - turnPrevX) * 1.5;
+          mouseDY += (t.clientY - turnPrevY) * 1.5;
+          turnPrevX = t.clientX; turnPrevY = t.clientY;
+        }
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchend', e => {
+      for (const t of e.changedTouches) { if (t.identifier === turnId) turnId = null; }
+    });
+    window.addEventListener('touchcancel', () => { turnId = null; });
+
+    // --- 动作按钮 ---
+    document.getElementById('mobileEnterBtn').addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (currentScene !== 'corridor') {
+        for (const ia of activeSceneData.interactables) {
+          if (ia.data.type === 'dialogue' && player.position.distanceTo(ia.mesh.position) < 7.0) { startDialogue(); return; }
+        }
+      } else {
+        const { distance: doorDist, tag: doorTag } = getDoorDistance();
+        if (doorDist < 1.5 && doorTag) { doorTag === 'future' ? showPinLock() : switchScene(doorTag); }
+      }
+    });
+    document.getElementById('mobileExhibitBtn').addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation(); handleInteract();
+    });
+    document.getElementById('mobileJumpBtn').addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (player.isOnGround) { player.velocityY = JUMP_SPEED; player.isOnGround = false; }
+    });
+  }
+
   console.log('🏛️ 时光博物馆已就绪');
   console.log('  WASD — 移动 | 移动鼠标 — 360° 旋转视角 | 滚轮 — 缩放');
   console.log('  走廊中靠近门按 E — 进入房间');
   console.log('  房间中靠近展品按 F — 查看');
   console.log('  ESC — 返回走廊');
   </script>
+
+  <!-- 手机端操控 -->
+  <div class="mobile-controls">
+    <div class="joystick-zone" id="joystickZone">
+      <div class="joystick-thumb" id="joystickThumb"></div>
+    </div>
+    <div class="mobile-jump-btn mobile-btn" id="mobileJumpBtn">跳</div>
+    <div class="mobile-actions">
+      <button class="mobile-btn" id="mobileEnterBtn">进</button>
+      <button class="mobile-btn" id="mobileExhibitBtn">看</button>
+    </div>
+  </div>
+
 </body>
 </html>
