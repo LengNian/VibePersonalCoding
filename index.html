@@ -933,14 +933,14 @@
   <!-- 手机端操控（必须在 script 之前） -->
   <div class="mobile-controls">
     <div class="mobile-dpad" id="mobileDpad">
-      <button class="dpad-btn" id="dpadUp">↑</button>
-      <button class="dpad-btn" id="dpadLeft">←</button>
-      <button class="dpad-btn" id="dpadRight">→</button>
-      <button class="dpad-btn" id="dpadDown">↓</button>
+      <button class="dpad-btn" id="dpadUp"   onpointerdown="window._dpad(0,1,this)" onpointerup="window._dpad(0,0,this)" onpointerleave="window._dpad(0,0,this)" onpointercancel="window._dpad(0,0,this)">↑</button>
+      <button class="dpad-btn" id="dpadLeft" onpointerdown="window._dpad(-1,0,this)" onpointerup="window._dpad(0,0,this)" onpointerleave="window._dpad(0,0,this)" onpointercancel="window._dpad(0,0,this)">←</button>
+      <button class="dpad-btn" id="dpadRight" onpointerdown="window._dpad(1,0,this)" onpointerup="window._dpad(0,0,this)" onpointerleave="window._dpad(0,0,this)" onpointercancel="window._dpad(0,0,this)">→</button>
+      <button class="dpad-btn" id="dpadDown" onpointerdown="window._dpad(0,-1,this)" onpointerup="window._dpad(0,0,this)" onpointerleave="window._dpad(0,0,this)" onpointercancel="window._dpad(0,0,this)">↓</button>
     </div>
-    <button class="mobile-btn jump-btn" id="mobileJumpBtn">跳</button>
-    <button class="mobile-btn" id="mobileEnterBtn">进</button>
-    <button class="mobile-btn" id="mobileExhibitBtn">看</button>
+    <button class="mobile-btn" id="mobileJumpBtn" onpointerdown="window._jump()">跳</button>
+    <button class="mobile-btn" id="mobileEnterBtn" onpointerdown="window._enter()">进</button>
+    <button class="mobile-btn" id="mobileExhibitBtn" onpointerdown="window._exhibit()">看</button>
   </div>
 
   <script type="importmap">
@@ -5660,74 +5660,14 @@
     const cv = document.getElementById('c');
     cv.style.pointerEvents = 'none';
 
-    // --- 十字键 D-Pad (pointerdown/up, 最可靠的移动端方案) ---
-    function setupDpad(id, mx, mz) {
-      const btn = document.getElementById(id);
-      if (!btn) return;
-      btn.addEventListener('pointerdown', function(e) {
-        e.preventDefault(); e.stopPropagation();
-        mobileMoveX = mx; mobileMoveZ = mz;
-        btn.classList.add('pressed');
-      });
-      btn.addEventListener('pointerup', function(e) {
-        e.preventDefault(); e.stopPropagation();
-        mobileMoveX = 0; mobileMoveZ = 0;
-        btn.classList.remove('pressed');
-      });
-      btn.addEventListener('pointerleave', function(e) {
-        mobileMoveX = 0; mobileMoveZ = 0;
-        btn.classList.remove('pressed');
-      });
-      btn.addEventListener('pointercancel', function(e) {
-        mobileMoveX = 0; mobileMoveZ = 0;
-        btn.classList.remove('pressed');
-      });
-    }
-    setupDpad('dpadUp', 0, 1);
-    setupDpad('dpadDown', 0, -1);
-    setupDpad('dpadLeft', -1, 0);
-    setupDpad('dpadRight', 1, 0);
-
-    // --- 右半屏触摸旋转 ---
-    let turnId = null, turnPX = 0, turnPY = 0;
-    const RIGHT_TH = window.innerWidth * 0.35;
-
-    window.addEventListener('touchstart', function(e) {
-      if (turnId !== null) return;
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        const t = e.changedTouches[i];
-        const el = document.elementFromPoint(t.clientX, t.clientY);
-        if (el && el.closest && el.closest('.mobile-controls,.modal-overlay,.completion-overlay,.bulletin-overlay,.pin-overlay,.dialogue-overlay,.start-overlay')) continue;
-        if (t.clientX > RIGHT_TH) {
-          turnId = t.identifier; turnPX = t.clientX; turnPY = t.clientY;
-          return;
-        }
-      }
-    }, { passive: false });
-
-    window.addEventListener('touchmove', function(e) {
-      if (turnId === null) return;
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === turnId) {
-          mouseDX += (e.changedTouches[i].clientX - turnPX) * 1.5;
-          mouseDY += (e.changedTouches[i].clientY - turnPY) * 1.5;
-          turnPX = e.changedTouches[i].clientX;
-          turnPY = e.changedTouches[i].clientY;
-          break;
-        }
-      }
-    }, { passive: false });
-
-    window.addEventListener('touchend', function(e) {
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === turnId) { turnId = null; break; }
-      }
-    });
-    window.addEventListener('touchcancel', function() { turnId = null; });
-
-    // --- 动作按钮 ---
-    document.getElementById('mobileEnterBtn').addEventListener('pointerdown', function(e) {
-      e.preventDefault(); e.stopPropagation();
+    // 十字键函数（挂 window，HTML onpointerdown 直接调用）
+    window._dpad = function(mx, mz, btn) {
+      mobileMoveX = mx; mobileMoveZ = mz;
+      if (mx !== 0 || mz !== 0) btn.classList.add('pressed');
+      else btn.classList.remove('pressed');
+    };
+    window._jump = function() { if (player.isOnGround) { player.velocityY = JUMP_SPEED; player.isOnGround = false; } };
+    window._enter = function() {
       if (currentScene !== 'corridor') {
         for (const ia of activeSceneData.interactables) {
           if (ia.data.type === 'dialogue' && player.position.distanceTo(ia.mesh.position) < 7.0) { startDialogue(); return; }
@@ -5736,16 +5676,37 @@
         const dd = getDoorDistance();
         if (dd.distance < 1.5 && dd.tag) { dd.tag === 'future' ? showPinLock() : switchScene(dd.tag); }
       }
-    });
-    document.getElementById('mobileExhibitBtn').addEventListener('pointerdown', function(e) {
-      e.preventDefault(); e.stopPropagation(); handleInteract();
-    });
-    document.getElementById('mobileJumpBtn').addEventListener('pointerdown', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      if (player.isOnGround) { player.velocityY = JUMP_SPEED; player.isOnGround = false; }
-    });
+    };
+    window._exhibit = function() { handleInteract(); };
 
-    console.log('✅ 手机操控 D-Pad + 按钮 + 视角 就绪');
+    // --- 右半屏触摸旋转 ---
+    let turnId = null, turnPX = 0, turnPY = 0;
+    const RIGHT_TH = window.innerWidth * 0.35;
+    window.addEventListener('touchstart', function(e) {
+      if (turnId !== null) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (el && el.closest && el.closest('.mobile-controls,.modal-overlay,.completion-overlay,.bulletin-overlay,.pin-overlay,.dialogue-overlay,.start-overlay')) continue;
+        if (t.clientX > RIGHT_TH) { turnId = t.identifier; turnPX = t.clientX; turnPY = t.clientY; return; }
+      }
+    }, { passive: false });
+    window.addEventListener('touchmove', function(e) {
+      if (turnId === null) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === turnId) {
+          mouseDX += (e.changedTouches[i].clientX - turnPX) * 1.5;
+          mouseDY += (e.changedTouches[i].clientY - turnPY) * 1.5;
+          turnPX = e.changedTouches[i].clientX; turnPY = e.changedTouches[i].clientY; break;
+        }
+      }
+    }, { passive: false });
+    window.addEventListener('touchend', function(e) {
+      for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === turnId) { turnId = null; break; } }
+    });
+    window.addEventListener('touchcancel', function() { turnId = null; });
+
+    console.log('✅ 手机操控就绪 (inline handlers)');
   }
 
   console.log('🏛️ 时光博物馆已就绪');
