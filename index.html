@@ -953,6 +953,18 @@
     }
   </style>
 
+  <!-- 手机端操控（必须在 script 之前，否则 JS 找不到元素） -->
+  <div class="mobile-controls">
+    <div class="joystick-zone" id="joystickZone">
+      <div class="joystick-thumb" id="joystickThumb"></div>
+    </div>
+    <div class="mobile-jump-btn mobile-btn" id="mobileJumpBtn">跳</div>
+    <div class="mobile-actions">
+      <button class="mobile-btn" id="mobileEnterBtn">进</button>
+      <button class="mobile-btn" id="mobileExhibitBtn">看</button>
+    </div>
+  </div>
+
   <script type="importmap">
   {
     "imports": {
@@ -5785,18 +5797,6 @@
   console.log('  房间中靠近展品按 F — 查看');
   console.log('  ESC — 返回走廊');
   </script>
-
-  <!-- 手机端操控 -->
-  <div class="mobile-controls">
-    <div class="joystick-zone" id="joystickZone">
-      <div class="joystick-thumb" id="joystickThumb"></div>
-    </div>
-    <div class="mobile-jump-btn mobile-btn" id="mobileJumpBtn">跳</div>
-    <div class="mobile-actions">
-      <button class="mobile-btn" id="mobileEnterBtn">进</button>
-      <button class="mobile-btn" id="mobileExhibitBtn">看</button>
-    </div>
-  </div>
 
 </body>
 </html>
