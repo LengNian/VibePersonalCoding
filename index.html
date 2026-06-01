@@ -5662,9 +5662,8 @@
   }, 1800);
 
   if (isMobile) {
-    // 防止双击缩放
-    document.addEventListener('touchmove', e => { e.preventDefault(); }, { passive: false });
-    document.addEventListener('gesturestart', e => { e.preventDefault(); });
+    // 移动端：禁止 canvas 吞掉触摸事件
+    document.getElementById('c').style.pointerEvents = 'none';
 
     // --- 虚拟摇杆 ---
     const jZone = document.getElementById('joystickZone');
@@ -5696,17 +5695,20 @@
     }
 
     jZone.addEventListener('touchstart', e => {
+      e.preventDefault(); e.stopPropagation();
       for (const t of e.changedTouches) {
         if (jId === null) { jId = t.identifier; jZone.classList.add('active'); updateJoystick(t); }
       }
-    });
+    }, { passive: false });
     jZone.addEventListener('touchmove', e => {
+      e.preventDefault(); e.stopPropagation();
       for (const t of e.changedTouches) { if (t.identifier === jId) updateJoystick(t); }
-    });
+    }, { passive: false });
     jZone.addEventListener('touchend', e => {
+      e.preventDefault(); e.stopPropagation();
       for (const t of e.changedTouches) { if (t.identifier === jId) resetJoystick(); }
     });
-    jZone.addEventListener('touchcancel', resetJoystick);
+    jZone.addEventListener('touchcancel', e => { e.preventDefault(); resetJoystick(); });
 
     // --- 右半屏触摸旋转视角 ---
     let turnId = null, turnPrevX = 0, turnPrevY = 0;
@@ -5739,8 +5741,8 @@
     });
     window.addEventListener('touchcancel', () => { turnId = null; });
 
-    // --- 动作按钮 ---
-    document.getElementById('mobileEnterBtn').addEventListener('pointerdown', e => {
+    // --- 动作按钮 (用 click 事件，移动端最可靠) ---
+    document.getElementById('mobileEnterBtn').addEventListener('click', e => {
       e.preventDefault(); e.stopPropagation();
       if (currentScene !== 'corridor') {
         for (const ia of activeSceneData.interactables) {
@@ -5751,10 +5753,10 @@
         if (doorDist < 1.5 && doorTag) { doorTag === 'future' ? showPinLock() : switchScene(doorTag); }
       }
     });
-    document.getElementById('mobileExhibitBtn').addEventListener('pointerdown', e => {
+    document.getElementById('mobileExhibitBtn').addEventListener('click', e => {
       e.preventDefault(); e.stopPropagation(); handleInteract();
     });
-    document.getElementById('mobileJumpBtn').addEventListener('pointerdown', e => {
+    document.getElementById('mobileJumpBtn').addEventListener('click', e => {
       e.preventDefault(); e.stopPropagation();
       if (player.isOnGround) { player.velocityY = JUMP_SPEED; player.isOnGround = false; }
     });
