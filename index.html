@@ -930,17 +930,15 @@
     }
   </style>
 
-  <!-- 手机端操控（必须在 script 之前） -->
+  <!-- 手机端操控 — 核弹级：内联样式 + ontouchstart，零 CSS 依赖 -->
   <div class="mobile-controls">
-    <div class="mobile-dpad" id="mobileDpad">
-      <button class="dpad-btn" id="dpadUp"   onpointerdown="window._dpad(0,1,this)" onpointerup="window._dpad(0,0,this)" onpointerleave="window._dpad(0,0,this)" onpointercancel="window._dpad(0,0,this)">↑</button>
-      <button class="dpad-btn" id="dpadLeft" onpointerdown="window._dpad(-1,0,this)" onpointerup="window._dpad(0,0,this)" onpointerleave="window._dpad(0,0,this)" onpointercancel="window._dpad(0,0,this)">←</button>
-      <button class="dpad-btn" id="dpadRight" onpointerdown="window._dpad(1,0,this)" onpointerup="window._dpad(0,0,this)" onpointerleave="window._dpad(0,0,this)" onpointercancel="window._dpad(0,0,this)">→</button>
-      <button class="dpad-btn" id="dpadDown" onpointerdown="window._dpad(0,-1,this)" onpointerup="window._dpad(0,0,this)" onpointerleave="window._dpad(0,0,this)" onpointercancel="window._dpad(0,0,this)">↓</button>
-    </div>
-    <button class="mobile-btn" id="mobileJumpBtn" onpointerdown="window._jump()">跳</button>
-    <button class="mobile-btn" id="mobileEnterBtn" onpointerdown="window._enter()">进</button>
-    <button class="mobile-btn" id="mobileExhibitBtn" onpointerdown="window._exhibit()">看</button>
+    <button ontouchstart="window.__mz=1;this.style.background='rgba(200,160,100,.5)'" ontouchend="window.__mz=0;this.style.background='rgba(20,14,6,.85)'" ontouchcancel="window.__mz=0;this.style.background='rgba(20,14,6,.85)'" style="position:fixed;bottom:160px;left:44px;width:72px;height:72px;z-index:99999;border-radius:12px;border:3px solid #c9a96e;background:rgba(20,14,6,.85);color:#c9a96e;font-size:28px;touch-action:manipulation;pointer-events:auto;">↑</button>
+    <button ontouchstart="window.__mz=-1;this.style.background='rgba(200,160,100,.5)'" ontouchend="window.__mz=0;this.style.background='rgba(20,14,6,.85)'" ontouchcancel="window.__mz=0;this.style.background='rgba(20,14,6,.85)'" style="position:fixed;bottom:80px;left:44px;width:72px;height:72px;z-index:99999;border-radius:12px;border:3px solid #c9a96e;background:rgba(20,14,6,.85);color:#c9a96e;font-size:28px;touch-action:manipulation;pointer-events:auto;">↓</button>
+    <button ontouchstart="window.__mx=-1;this.style.background='rgba(200,160,100,.5)'" ontouchend="window.__mx=0;this.style.background='rgba(20,14,6,.85)'" ontouchcancel="window.__mx=0;this.style.background='rgba(20,14,6,.85)'" style="position:fixed;bottom:120px;left:4px;width:72px;height:72px;z-index:99999;border-radius:12px;border:3px solid #c9a96e;background:rgba(20,14,6,.85);color:#c9a96e;font-size:28px;touch-action:manipulation;pointer-events:auto;">←</button>
+    <button ontouchstart="window.__mx=1;this.style.background='rgba(200,160,100,.5)'" ontouchend="window.__mx=0;this.style.background='rgba(20,14,6,.85)'" ontouchcancel="window.__mx=0;this.style.background='rgba(20,14,6,.85)'" style="position:fixed;bottom:120px;left:84px;width:72px;height:72px;z-index:99999;border-radius:12px;border:3px solid #c9a96e;background:rgba(20,14,6,.85);color:#c9a96e;font-size:28px;touch-action:manipulation;pointer-events:auto;">→</button>
+    <button ontouchstart="window._jump()" style="position:fixed;bottom:100px;left:180px;width:60px;height:60px;z-index:99999;border-radius:50%;border:3px solid #c9a96e;background:rgba(20,14,6,.85);color:#c9a96e;font-size:16px;touch-action:manipulation;pointer-events:auto;">跳</button>
+    <button ontouchstart="window._enter()" style="position:fixed;bottom:100px;right:130px;width:60px;height:60px;z-index:99999;border-radius:50%;border:3px solid #c9a96e;background:rgba(20,14,6,.85);color:#c9a96e;font-size:16px;touch-action:manipulation;pointer-events:auto;">进</button>
+    <button ontouchstart="window._exhibit()" style="position:fixed;bottom:100px;right:40px;width:60px;height:60px;z-index:99999;border-radius:50%;border:3px solid #c9a96e;background:rgba(20,14,6,.85);color:#c9a96e;font-size:16px;touch-action:manipulation;pointer-events:auto;">看</button>
   </div>
 
   <!-- 手机操控同步脚本（不依赖 module 加载） -->
@@ -951,17 +949,12 @@
       if (!isMobile) return;
       document.body.classList.add('is-mobile');
       document.getElementById('c').style.pointerEvents = 'none';
-      console.log('📱 手机模式（同步脚本）');
+      console.log('📱 手机模式激活（同步脚本）');
 
-      // 全局变量，module 脚本读取
+      // 移动方向 —— 按钮 ontouchstart 直接写
       window.__mx = 0; window.__mz = 0;
 
-      // D-pad 方向键
-      window._dpad = function(mx, mz, btn) {
-        window.__mx = mx; window.__mz = mz;
-        if (mx||mz) btn.classList.add('pressed'); else btn.classList.remove('pressed');
-      };
-      // 动作按钮 -> 事件通知 module
+      // 动作按钮 —— 通过事件通知 module
       window._jump = function() { window.dispatchEvent(new Event('mobile-jump')); };
       window._enter = function() { window.dispatchEvent(new Event('mobile-enter')); };
       window._exhibit = function() { window.dispatchEvent(new Event('mobile-exhibit')); };
