@@ -943,6 +943,57 @@
     <button class="mobile-btn" id="mobileExhibitBtn" onpointerdown="window._exhibit()">看</button>
   </div>
 
+  <!-- 手机操控同步脚本（不依赖 module 加载） -->
+  <script>
+    (function() {
+      var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
+                     ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+      if (!isMobile) return;
+      document.body.classList.add('is-mobile');
+      document.getElementById('c').style.pointerEvents = 'none';
+      console.log('📱 手机模式（同步脚本）');
+
+      // 全局变量，module 脚本读取
+      window.__mx = 0; window.__mz = 0;
+
+      // D-pad 方向键
+      window._dpad = function(mx, mz, btn) {
+        window.__mx = mx; window.__mz = mz;
+        if (mx||mz) btn.classList.add('pressed'); else btn.classList.remove('pressed');
+      };
+      // 动作按钮 -> 事件通知 module
+      window._jump = function() { window.dispatchEvent(new Event('mobile-jump')); };
+      window._enter = function() { window.dispatchEvent(new Event('mobile-enter')); };
+      window._exhibit = function() { window.dispatchEvent(new Event('mobile-exhibit')); };
+
+      // 触摸旋转
+      var turnId = null, turnPX = 0, turnPY = 0, RIGHT_TH = innerWidth * 0.35;
+      window.addEventListener('touchstart', function(e) {
+        if (turnId !== null) return;
+        for (var i = 0; i < e.changedTouches.length; i++) {
+          var t = e.changedTouches[i];
+          var el = document.elementFromPoint(t.clientX, t.clientY);
+          if (el && el.closest && el.closest('.mobile-controls,.modal-overlay,.completion-overlay,.bulletin-overlay,.pin-overlay,.dialogue-overlay,.start-overlay')) continue;
+          if (t.clientX > RIGHT_TH) { turnId = t.identifier; turnPX = t.clientX; turnPY = t.clientY; return; }
+        }
+      }, { passive: false });
+      window.addEventListener('touchmove', function(e) {
+        if (turnId === null) return;
+        for (var i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === turnId) {
+            window.__mouseDX = (window.__mouseDX||0) + (e.changedTouches[i].clientX - turnPX) * 1.5;
+            window.__mouseDY = (window.__mouseDY||0) + (e.changedTouches[i].clientY - turnPY) * 1.5;
+            turnPX = e.changedTouches[i].clientX; turnPY = e.changedTouches[i].clientY; break;
+          }
+        }
+      }, { passive: false });
+      window.addEventListener('touchend', function(e) {
+        for (var i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === turnId) { turnId = null; break; } }
+      });
+      window.addEventListener('touchcancel', function() { turnId = null; });
+    })();
+  </script>
+
   <script type="importmap">
   {
     "imports": {
@@ -5228,7 +5279,12 @@
   function animate() {
     requestAnimationFrame(animate);
 
+
     const dt = Math.min(clock.getDelta(), 0.1);
+
+    // 手机触摸旋转值注入（同步脚本写入 window.__mouseDX/__mouseDY）
+    if (window.__mouseDX) { mouseDX += window.__mouseDX; window.__mouseDX = 0; }
+    if (window.__mouseDY) { mouseDY += window.__mouseDY; window.__mouseDY = 0; }
 
     if (!isTransitioning) {
       // 鼠标旋转轨道相机
@@ -5246,10 +5302,10 @@
 
       // WASD 移动 (相对相机方向, 兼容手机摇杆)
       const moveDir = new THREE.Vector3();
-      if (keys['w'] || keys['arrowup'] || mobileMoveZ > 0.3) moveDir.add(camForward);
-      if (keys['s'] || keys['arrowdown'] || mobileMoveZ < -0.3) moveDir.sub(camForward);
-      if (keys['a'] || keys['arrowleft'] || mobileMoveX < -0.3) moveDir.sub(camRight);
-      if (keys['d'] || keys['arrowright'] || mobileMoveX > 0.3) moveDir.add(camRight);
+      if (keys['w'] || keys['arrowup'] || (window.__mz||0) > 0.3) moveDir.add(camForward);
+      if (keys['s'] || keys['arrowdown'] || (window.__mz||0) < -0.3) moveDir.sub(camForward);
+      if (keys['a'] || keys['arrowleft'] || (window.__mx||0) < -0.3) moveDir.sub(camRight);
+      if (keys['d'] || keys['arrowright'] || (window.__mx||0) > 0.3) moveDir.add(camRight);
 
 
       const isMoving = moveDir.length() > 0.01;
@@ -5632,21 +5688,27 @@
 
   document.getElementById('sceneLabel').textContent = scenes.corridor.name;
 
-  // ===== 手机端操控 =====
-  let isMobile = false;
-  try { isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent); } catch(e) {}
-  if (!isMobile) isMobile = ('ontouchstart' in window && navigator.maxTouchPoints > 0);
-  if (isMobile) { document.body.classList.add('is-mobile'); console.log('📱 手机端模式激活'); }
-  else { console.log('💻 桌面端模式'); }
-
-  // 摇杆状态（必须在 animate() 之前声明）
-  let mobileMoveX = 0, mobileMoveZ = 0, mobileJump = false;
+  // 手机端：同步脚本已处理 isMobile 检测和触摸旋转。
+  // 这里只监听动作事件 + 依赖同步脚本的 __mx/__mz/__mouseDX/__mouseDY
+  window.addEventListener('mobile-jump', function() {
+    if (player.isOnGround) { player.velocityY = JUMP_SPEED; player.isOnGround = false; }
+  });
+  window.addEventListener('mobile-enter', function() {
+    if (currentScene !== 'corridor') {
+      for (const ia of activeSceneData.interactables) {
+        if (ia.data.type === 'dialogue' && player.position.distanceTo(ia.mesh.position) < 7.0) { startDialogue(); return; }
+      }
+    } else {
+      const dd = getDoorDistance();
+      if (dd.distance < 1.5 && dd.tag) { dd.tag === 'future' ? showPinLock() : switchScene(dd.tag); }
+    }
+  });
+  window.addEventListener('mobile-exhibit', function() { handleInteract(); });
 
   animate();
 
   // 加载画面 → 过渡到开始遮罩
   const loadingOverlay = document.getElementById('loadingOverlay');
-  // 首次渲染完成后，加载画面淡出，开始遮罩淡入
   setTimeout(() => {
     loadingOverlay.classList.add('hidden');
     setTimeout(() => {
@@ -5654,60 +5716,6 @@
       startOverlay.classList.remove('hidden');
     }, 600);
   }, 1800);
-
-  if (isMobile) {
-    // canvas 不抢触摸
-    const cv = document.getElementById('c');
-    cv.style.pointerEvents = 'none';
-
-    // 十字键函数（挂 window，HTML onpointerdown 直接调用）
-    window._dpad = function(mx, mz, btn) {
-      mobileMoveX = mx; mobileMoveZ = mz;
-      if (mx !== 0 || mz !== 0) btn.classList.add('pressed');
-      else btn.classList.remove('pressed');
-    };
-    window._jump = function() { if (player.isOnGround) { player.velocityY = JUMP_SPEED; player.isOnGround = false; } };
-    window._enter = function() {
-      if (currentScene !== 'corridor') {
-        for (const ia of activeSceneData.interactables) {
-          if (ia.data.type === 'dialogue' && player.position.distanceTo(ia.mesh.position) < 7.0) { startDialogue(); return; }
-        }
-      } else {
-        const dd = getDoorDistance();
-        if (dd.distance < 1.5 && dd.tag) { dd.tag === 'future' ? showPinLock() : switchScene(dd.tag); }
-      }
-    };
-    window._exhibit = function() { handleInteract(); };
-
-    // --- 右半屏触摸旋转 ---
-    let turnId = null, turnPX = 0, turnPY = 0;
-    const RIGHT_TH = window.innerWidth * 0.35;
-    window.addEventListener('touchstart', function(e) {
-      if (turnId !== null) return;
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        const t = e.changedTouches[i];
-        const el = document.elementFromPoint(t.clientX, t.clientY);
-        if (el && el.closest && el.closest('.mobile-controls,.modal-overlay,.completion-overlay,.bulletin-overlay,.pin-overlay,.dialogue-overlay,.start-overlay')) continue;
-        if (t.clientX > RIGHT_TH) { turnId = t.identifier; turnPX = t.clientX; turnPY = t.clientY; return; }
-      }
-    }, { passive: false });
-    window.addEventListener('touchmove', function(e) {
-      if (turnId === null) return;
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === turnId) {
-          mouseDX += (e.changedTouches[i].clientX - turnPX) * 1.5;
-          mouseDY += (e.changedTouches[i].clientY - turnPY) * 1.5;
-          turnPX = e.changedTouches[i].clientX; turnPY = e.changedTouches[i].clientY; break;
-        }
-      }
-    }, { passive: false });
-    window.addEventListener('touchend', function(e) {
-      for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === turnId) { turnId = null; break; } }
-    });
-    window.addEventListener('touchcancel', function() { turnId = null; });
-
-    console.log('✅ 手机操控就绪 (inline handlers)');
-  }
 
   console.log('🏛️ 时光博物馆已就绪');
   console.log('  WASD — 移动 | 移动鼠标 — 360° 旋转视角 | 滚轮 — 缩放');
