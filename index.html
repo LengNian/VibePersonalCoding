@@ -550,7 +550,7 @@
   body.is-mobile .mobile-controls { display: block; }
   body.is-mobile .controls-help { display: none; }
   body.is-mobile .interact-hint { bottom: 160px; }
-  body.is-mobile { touch-action: manipulation; overflow: hidden; position: fixed; width: 100%; height: 100%; }
+  body.is-mobile { touch-action: manipulation; }
 
   .mobile-dpad {
     position: fixed; bottom: 40px; left: 10px; z-index: 99999;
@@ -594,6 +594,7 @@
   #mobileJumpBtn   { bottom: 120px; right: 40px; }
   #mobileEnterBtn  { bottom: 50px; right: 130px; }
   #mobileExhibitBtn { bottom: 50px; right: 40px; }
+  #mobileBackBtn   { bottom: 50px; right: 220px; }
 </style>
 </head>
 <body>
@@ -932,13 +933,17 @@
     <button class="mobile-btn" id="mobileJumpBtn"   ontouchstart="window._jump()">跳</button>
     <button class="mobile-btn" id="mobileEnterBtn"  ontouchstart="window._enter()">进</button>
     <button class="mobile-btn" id="mobileExhibitBtn" ontouchstart="window._exhibit()">看</button>
+    <button class="mobile-btn" id="mobileBackBtn"   ontouchstart="window._back()">返</button>
   </div>
 
   <!-- 手机操控同步脚本（不依赖 module 加载） -->
   <script>
     (function() {
-      var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ||
-                     ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+      // 严格手机检测：必须是移动端 UA + 有触摸 + 屏幕窄，三者全满足才激活
+      var uaMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+      var hasTouch = 'ontouchstart' in window && navigator.maxTouchPoints > 0;
+      var isNarrow = window.innerWidth < 768;
+      var isMobile = uaMobile || (hasTouch && isNarrow);
       if (!isMobile) return;
       document.body.classList.add('is-mobile');
       document.getElementById('c').style.pointerEvents = 'none';
@@ -951,6 +956,7 @@
       window._jump = function() { window.dispatchEvent(new Event('mobile-jump')); };
       window._enter = function() { window.dispatchEvent(new Event('mobile-enter')); };
       window._exhibit = function() { window.dispatchEvent(new Event('mobile-exhibit')); };
+      window._back = function() { window.dispatchEvent(new Event('mobile-back')); };
 
       // 触摸旋转
       var turnId = null, turnPX = 0, turnPY = 0, RIGHT_TH = innerWidth * 0.35;
@@ -5266,6 +5272,7 @@
     requestAnimationFrame(animate);
 
 
+
     const dt = Math.min(clock.getDelta(), 0.1);
 
     // 手机触摸旋转值注入（同步脚本写入 window.__mouseDX/__mouseDY）
@@ -5690,10 +5697,11 @@
     }
   });
   window.addEventListener('mobile-exhibit', function() { handleInteract(); });
+  window.addEventListener('mobile-back', function() {
+    try { if (typeof switchScene === 'function' && currentScene !== 'corridor' && !isTransitioning) switchScene('corridor'); } catch(e) { console.error('返回到走廊失败:', e); }
+  });
 
-  animate();
-
-  // 加载画面 → 过渡到开始遮罩
+  // 加载画面 → 过渡到开始遮罩（放前面，确保无论如何都会执行）
   const loadingOverlay = document.getElementById('loadingOverlay');
   setTimeout(() => {
     loadingOverlay.classList.add('hidden');
@@ -5702,6 +5710,9 @@
       startOverlay.classList.remove('hidden');
     }, 600);
   }, 1800);
+
+  console.log('⚡ 模块初始化完成，启动渲染...');
+  try { animate(); } catch(e) { console.error('animate 崩溃:', e); loadingOverlay.classList.add('hidden'); loadingOverlay.style.display = 'none'; startOverlay.classList.remove('hidden'); }
 
   console.log('🏛️ 时光博物馆已就绪');
   console.log('  WASD — 移动 | 移动鼠标 — 360° 旋转视角 | 滚轮 — 缩放');
