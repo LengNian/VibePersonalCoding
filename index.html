@@ -958,10 +958,10 @@
       window._exhibit = function() { window.dispatchEvent(new Event('mobile-exhibit')); };
       window._back = function() { window.dispatchEvent(new Event('mobile-back')); };
 
-      // 触摸旋转
+      // 触摸旋转（单指时生效，多指捏合时跳过）
       var turnId = null, turnPX = 0, turnPY = 0, RIGHT_TH = innerWidth * 0.35;
       window.addEventListener('touchstart', function(e) {
-        if (turnId !== null) return;
+        if (turnId !== null || e.touches.length > 1) return;
         for (var i = 0; i < e.changedTouches.length; i++) {
           var t = e.changedTouches[i];
           var el = document.elementFromPoint(t.clientX, t.clientY);
@@ -970,7 +970,7 @@
         }
       }, { passive: false });
       window.addEventListener('touchmove', function(e) {
-        if (turnId === null) return;
+        if (turnId === null || e.touches.length > 1) { turnId = null; return; }
         for (var i = 0; i < e.changedTouches.length; i++) {
           if (e.changedTouches[i].identifier === turnId) {
             window.__mouseDX = (window.__mouseDX||0) + (e.changedTouches[i].clientX - turnPX) * 1.5;
