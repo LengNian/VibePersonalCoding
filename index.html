@@ -5295,9 +5295,10 @@
 
     const dt = Math.min(clock.getDelta(), 0.1);
 
-    // 手机触摸旋转值注入（同步脚本写入 window.__mouseDX/__mouseDY）
+    // 手机触摸旋转值注入（同步脚本写入 window.__mouseDX/__mouseDY/__pinchDelta）
     if (window.__mouseDX) { mouseDX += window.__mouseDX; window.__mouseDX = 0; }
     if (window.__mouseDY) { mouseDY += window.__mouseDY; window.__mouseDY = 0; }
+    if (window.__pinchDelta) { cameraDistance = Math.max(2, Math.min(12, cameraDistance + window.__pinchDelta)); window.__pinchDelta = 0; }
 
     if (!isTransitioning) {
       // 鼠标旋转轨道相机
