@@ -543,6 +543,9 @@
     .interact-hint { bottom: 130px; font-size: 13px; }
     .start-content h1 { font-size: 24px; }
     .completion-card { padding: 40px 28px 36px; }
+    .bulletin-inner { padding: 20px 16px 16px; }
+    .bulletin-notice { margin-bottom: 14px; }
+    .bulletin-title { font-size: 17px; margin-bottom: 14px; }
   }
 
   /* ---- 手机端操控 ---- */
@@ -706,9 +709,8 @@
             与<b>全部展品</b>交互后，将解锁隐藏成就页面——馆长的致谢与一封留给你的信。
           </div>
         </div>
-
-        <button class="bulletin-enter" id="bulletinEnter">进入博物馆 ▸</button>
       </div>
+      <button class="bulletin-enter" id="bulletinEnter">进入博物馆 ▸</button>
     </div>
   </div>
 
@@ -786,6 +788,9 @@
       padding: 0;
       max-width: 520px;
       width: 90%;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
       position: relative;
       transform: translateY(20px) scale(0.96);
       transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -796,9 +801,12 @@
     }
     .bulletin-inner {
       background: linear-gradient(160deg, #c4b090 0%, #d4c4a4 30%, #baa888 100%);
-      margin: 4px;
+      margin: 4px 4px 0 4px;
       padding: 32px 30px 24px;
-      min-height: 320px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      min-height: 0;
       position: relative;
       /* 软木板纹理 */
       background-image:
